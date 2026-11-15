@@ -18,8 +18,6 @@
   const source = cart ? `golf cart ${cart}` : params.get("src") || "golf cart";
   const wa = (text) => `https://wa.me/${Z.contact.whatsapp}?text=${encodeURIComponent(text)}`;
   const tail = () => `\n(From the Zion Hills ${source} page)`;
-  // Link to the 12-chapter story; carries the source so its WhatsApp messages say where the visitor came from
-  const storyUrl = `story.html?src=${encodeURIComponent(source)}`;
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } },
@@ -114,7 +112,7 @@
           </div>
         </article>`).join("")}
       </div>
-      ${quote ? `<blockquote class="pull rv"><p>“${esc(quote.quote)}”</p><cite>${esc(quote.who)}</cite></blockquote>` : ""}
+      ${quote ? `<blockquote class="pull rv"><p>${esc(quote.quote)}</p><cite>${esc(quote.who)}</cite></blockquote>` : ""}
       ${on("brochure") ? `
       <aside class="brochure rv">
         <div><h3>${esc(O.brochure.title)}</h3><p>${esc(O.brochure.text)}</p></div>
@@ -122,29 +120,23 @@
       </aside>` : ""}
     </section>
 
-    <!-- Want to know more? → the 12-chapter story (story.html) -->
-    <a class="storycard" href="${storyUrl}">
-      <img src="${esc(IMG.aerial)}" alt="" loading="lazy">
-      <span class="storycard-shade"></span>
-      <span class="storycard-copy">
-        <span class="mono">Want to know more?</span>
-        <span class="storycard-title">The Zion Hills story</span>
-        <span class="storycard-sub">12 short chapters — the course, the homes, the life, and what you're really buying.</span>
-        <span class="btn light">Watch the full story →</span>
-      </span>
-    </a>
-
     <!-- 5. The main ask -->
     <section class="nineteenth" id="after">
-      <div class="caustics" aria-hidden="true"></div>
-      <p class="eyebrow">The 19th hole</p>
+      <img class="n-photo" src="${esc(IMG.clubLawn)}" alt="" loading="lazy">
+      <div class="n-shade"></div>
+      <div class="n-inner">
+      <div class="n-head">
+        <p class="eyebrow">The 19th hole</p>
+        <svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
+          <defs><path id="seal-ring" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0"/></defs>
+          <g class="seal-spin"><text><textPath href="#seal-ring" textLength="272">ON THE HOUSE · THE 19TH HOLE · </textPath></text></g>
+          <circle cx="60" cy="60" r="27" class="seal-core"/>
+          <path d="M55 74V44h1.6l.5 1.4H70l-4 6.6 4 6.6H57v15.4z" class="seal-flag"/>
+        </svg>
+      </div>
       <h2>${on("nineteenth") ? esc(nt.title) : "See a home before you drive back."}</h2>
-      <p class="lead">${on("nineteenth") ? esc(nt.text) : "Tell us when you finish. We'll meet you at the clubhouse and walk you through a home, at your pace."}</p>
+      <p class="lead">${on("nineteenth") ? esc(nt.text) : "We'll meet you at the clubhouse and walk you through a home, at your pace."}</p>
       <form id="after-form" novalidate>
-        <fieldset class="when">
-          <legend>When do you finish?</legend>
-          ${["After 9 holes", "After 18 holes", "Later today", "Another day"].map((t, i) => `<label class="pick"><input type="radio" name="when" value="${t}" ${i === 1 ? "checked" : ""}><span>${t}</span></label>`).join("")}
-        </fieldset>
         <label>Curious about
           <select name="home"><option value="">${on("nineteenth") ? "Just the drink — and a chat" : "Not sure yet — show me around"}</option>${homes.map((x) => `<option>${esc(x.name)}</option>`).join("")}</select>
         </label>
@@ -155,7 +147,7 @@
         <p class="small">Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.${Z.brand.mapUrl ? ` <a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Find the clubhouse on the map ↗</a>` : ""}</p>
         ${on("nineteenth") && nt.terms ? `<p class="small fine">${esc(nt.terms)}</p>` : ""}
       </form>
-      <a class="story-link" href="${storyUrl}">Not ready yet? Watch the full Zion Hills story →</a>
+      </div>
     </section>
 
     <!-- 6. A second chance -->
@@ -375,7 +367,6 @@
       ["#after", "19th hole", "On us"],
       on("tonight") && ["#tonight", "Stay tonight", "Villas"],
       Z.brand.mapUrl && [Z.brand.mapUrl, "Estate map", "Live ↗"],
-      [storyUrl, "The full story", "12 chapters"],
       [`tel:${Z.contact.phone}`, "Call us", "Now"],
     ].filter(Boolean);
     $(".sheet-links").innerHTML = links.map(([h, t, s]) => `<a href="${esc(h)}"${/^https?:/.test(h) ? ' target="_blank" rel="noopener"' : ""}>${esc(t)}<small>${esc(s)}</small></a>`).join("");
@@ -394,7 +385,6 @@
         on("nineteenth")
           ? "Hi, I'd like to take you up on the 19th hole — a drink at the clubhouse after my round."
           : "Hi, I'd like to see a home at Zion Hills after my round.",
-        `When: ${f.when.value}`,
         `Curious about: ${f.home.value || (on("nineteenth") ? "Just the drink — and a chat" : "Not sure yet")}`,
         `Name: ${f.name.value.trim()}`,
         `Phone: ${f.phone.value.trim()}`,
