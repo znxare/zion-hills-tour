@@ -18,6 +18,8 @@
   const source = cart ? `golf cart ${cart}` : params.get("src") || "golf cart";
   const wa = (text) => `https://wa.me/${Z.contact.whatsapp}?text=${encodeURIComponent(text)}`;
   const tail = () => `\n(From the Zion Hills ${source} page)`;
+  // Link to the 12-chapter story; carries the source so its WhatsApp messages say where the visitor came from
+  const storyUrl = `story.html?src=${encodeURIComponent(source)}`;
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } },
@@ -120,6 +122,18 @@
       </aside>` : ""}
     </section>
 
+    <!-- Want to know more? → the 12-chapter story (story.html) -->
+    <a class="storycard" href="${storyUrl}">
+      <img src="${esc(IMG.aerial)}" alt="" loading="lazy">
+      <span class="storycard-shade"></span>
+      <span class="storycard-copy">
+        <span class="mono">Want to know more?</span>
+        <span class="storycard-title">The Zion Hills story</span>
+        <span class="storycard-sub">12 short chapters — the course, the homes, the life, and what you're really buying.</span>
+        <span class="btn light">Watch the full story →</span>
+      </span>
+    </a>
+
     <!-- 5. The main ask -->
     <section class="nineteenth" id="after">
       <div class="caustics" aria-hidden="true"></div>
@@ -141,6 +155,7 @@
         <p class="small">Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.${Z.brand.mapUrl ? ` <a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Find the clubhouse on the map ↗</a>` : ""}</p>
         ${on("nineteenth") && nt.terms ? `<p class="small fine">${esc(nt.terms)}</p>` : ""}
       </form>
+      <a class="story-link" href="${storyUrl}">Not ready yet? Watch the full Zion Hills story →</a>
     </section>
 
     <!-- 6. A second chance -->
@@ -360,7 +375,7 @@
       ["#after", "19th hole", "On us"],
       on("tonight") && ["#tonight", "Stay tonight", "Villas"],
       Z.brand.mapUrl && [Z.brand.mapUrl, "Estate map", "Live ↗"],
-      ["story.html", "The full story", "12 chapters"],
+      [storyUrl, "The full story", "12 chapters"],
       [`tel:${Z.contact.phone}`, "Call us", "Now"],
     ].filter(Boolean);
     $(".sheet-links").innerHTML = links.map(([h, t, s]) => `<a href="${esc(h)}"${/^https?:/.test(h) ? ' target="_blank" rel="noopener"' : ""}>${esc(t)}<small>${esc(s)}</small></a>`).join("");
