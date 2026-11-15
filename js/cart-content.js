@@ -32,7 +32,7 @@ window.CART = {
       text: "Get the homes brochure and prices on WhatsApp. No forms, no calls unless you ask.",
     },
     tonight: {
-      on: true,
+      on: false,   // removed from the page at the owner's request (kept here in case it's wanted again)
       title: "Don't drive back tonight.",
       text: "Stay the night in a golf-side villa. Wake up to coffee over the fairway and a walk before breakfast.",
       discount: "",   // e.g. "Golfers get 15% off tonight's stay" — leave empty for no offer

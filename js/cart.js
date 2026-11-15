@@ -158,19 +158,7 @@
           <a class="btn glass wide" href="${esc(Z.brand.stayUrl)}" target="_blank" rel="noopener">Book a stay online</a>
         </div>
       </div>
-    </section>` : ""}
-
-    <footer class="foot">
-      <a class="btn line wide" href="story.html">Watch the full Zion Hills story →</a>
-      <p class="links">
-        <button class="linkish" id="invite">Already a Zioneer? Invite a friend</button>
-        ${Z.brand.mapUrl ? `<a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Estate map</a>` : ""}
-        <a href="${esc(Z.brand.mainWebsite)}" target="_blank" rel="noopener">zionhills.in</a>
-        <a href="tel:${esc(Z.contact.phone)}">Call</a>
-        <a href="mailto:${esc(Z.contact.email)}">Email</a>
-      </p>
-      <p class="small">${esc(Z.brand.full)} · ${esc(Z.contact.address)}. Plans and sizes are indicative. Bangalore traffic photo: Divya Chinnasamy, CC0, via Wikimedia Commons.</p>
-    </footer>`;
+    </section>` : ""}`;
   }
 
   /* ======================= 0. Gate: sink the putt ======================= */
@@ -400,12 +388,6 @@
       window.open(wa(msg), "_blank", "noopener");
     });
 
-    $("#invite").addEventListener("click", async () => {
-      const url = location.origin + location.pathname + "?src=referral";
-      const text = "I think you'd love Zion Hills — a golf county near Bangalore. Take a look:";
-      if (navigator.share) { try { await navigator.share({ title: "Zion Hills", text, url }); return; } catch (e) { if (e.name === "AbortError") return; } }
-      window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`, "_blank", "noopener");
-    });
   }
 
   render();

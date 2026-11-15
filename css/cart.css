@@ -251,7 +251,8 @@ h2 { font: italic 400 clamp(44px, 12vw, 88px)/.98 var(--serif); letter-spacing: 
 
 /* ---------- 19th hole ---------- */
 .nineteenth {
-  position: relative; padding: 90px var(--g); color: #fff; overflow: hidden;
+  /* last section on the page: extra room at the bottom for the phone's home bar */
+  position: relative; padding: 90px var(--g) calc(70px + env(safe-area-inset-bottom)); color: #fff; overflow: hidden;
   background: radial-gradient(120% 70% at 50% 0%, var(--deep-2) 0%, var(--deep) 60%, #0b2316 100%);
 }
 .nineteenth > * { position: relative; max-width: 640px; margin-left: auto; margin-right: auto; }
