@@ -3,44 +3,39 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Zion Hills Golf County — Take the Walk</title>
-  <meta name="description" content="Walk through Zion Hills Golf County near Bangalore: the Ronald Fream course, golf-front villas and condos, and book a site visit.">
-  <meta name="theme-color" content="#14130f">
-  <meta property="og:title" content="Zion Hills Golf County — Take the Walk">
-  <meta property="og:description" content="Golf-front homes near Bangalore. Take the walk and book a site visit.">
+  <title>Zion Hills — The Living Story</title>
+  <meta name="description" content="Zion Hills Golf County near Bangalore: a 250-acre estate around an 18-hole Ronald Fream course. Take the story, find your home, book a private tour.">
+  <meta name="theme-color" content="#0e0e0d">
+  <meta property="og:title" content="Zion Hills — The Living Story">
+  <meta property="og:description" content="What if your home was your favourite destination?">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="https://static.wixstatic.com/media/6c3b8b_3df8f334569d455cbd85b5cd421d4637~mv2.jpg/v1/fit/w_1800,h_1800,q_80,enc_auto/zionhills.jpg">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Top: chapter nav + scroll progress -->
+  <!-- Story progress: one bar per chapter -->
   <header class="topbar">
-    <a class="mark" href="#arrive" aria-label="Zion Hills, back to top">ZH</a>
-    <nav class="chapters" aria-label="Chapters">
-      <a href="#arrive" data-ch="arrive">Arrive</a>
-      <a href="#tour" data-ch="tour">Walk</a>
-      <a href="#villas" data-ch="villas">Homes</a>
-      <a href="#life" data-ch="life">Life</a>
-      <a href="#location" data-ch="location">Location</a>
-      <a href="#visit" data-ch="visit">Visit</a>
-    </nav>
-    <div class="progress"><i></i></div>
+    <div class="bars" role="navigation" aria-label="Chapters"></div>
+    <div class="row">
+      <a class="wordmark" href="#ch-1">Zion Hills</a>
+      <span class="now" aria-live="polite"><b>01</b> The question</span>
+    </div>
   </header>
-
-  <!-- Side rail like a film strip -->
-  <div class="rail" aria-hidden="true"><span class="rail-count">01</span></div>
 
   <main id="story"></main>
 
-  <!-- Always-visible actions (mobile) -->
-  <div class="actionbar" role="group" aria-label="Contact">
-    <a class="act" id="act-call" href="#">Call</a>
-    <a class="act" id="act-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
-    <a class="act act-primary" href="#visit">Book a visit</a>
+  <!-- Persistent booking -->
+  <div class="dock" role="group" aria-label="Contact">
+    <a class="dock-icon" id="dock-call" href="#" aria-label="Call Zion Hills">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg>
+    </a>
+    <a class="dock-icon" id="dock-wa" href="#" target="_blank" rel="noopener" aria-label="WhatsApp Zion Hills">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3 1 2.6 1.1 2.8.1.2 1.9 2.9 4.6 4 1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.4-.2z"/></svg>
+    </a>
+    <a class="dock-book" href="#book">Book a private tour <span aria-hidden="true">↗</span></a>
   </div>
-
-  <div class="grain" aria-hidden="true"></div>
 
   <script src="js/content.js"></script>
   <script src="js/app.js"></script>

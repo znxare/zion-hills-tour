@@ -1,4 +1,4 @@
-/* Zion Hills — scroll storytelling engine. Content comes from js/content.js */
+/* Zion Hills — The Living Story. Content comes from js/content.js */
 (function () {
   "use strict";
   const Z = window.ZION;
@@ -6,206 +6,223 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const pad = (n) => String(n).padStart(2, "0");
+  const hd = innerWidth > 900;
 
-  // Which QR code brought this visitor? Print different codes as ?src=hoarding, ?src=brochure ...
+  // Which QR code brought this visitor? e.g. ?src=hoarding
   const params = new URLSearchParams(location.search);
   const source = params.get("src") || params.get("utm_source") || "";
+  const waLink = (text) => `https://wa.me/${Z.contact.whatsapp}?text=${encodeURIComponent(text)}`;
+  const arrow = `<span class="arr" aria-hidden="true">↗</span>`;
 
-  /* ---------- Scene builders ---------- */
-  // A pinned, full-screen scene. `len` = how many screens of scrolling it lasts.
-  function scene({ id = "", ch, len = 1.6, image, video = "", cls = "", html, alt = "" }) {
-    const media = video
-      ? `<video class="bg" src="${esc(video)}" poster="${esc(image)}" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>`
-      : `<img class="bg" src="${esc(image)}" alt="${esc(alt)}" ${cls.includes("first") ? "" : 'loading="lazy"'} onerror="this.classList.add('missing')">`;
+  /* ---------------- Chapter renderers ---------------- */
+
+  // Full-screen story: pinned stage, one scroll-step per beat
+  function story(ch, n) {
+    const layers = [];
+    const beats = ch.beats.map((b) => {
+      if (b.media) layers.push(b.media);
+      return { ...b, m: Math.max(0, layers.length - 1) };
+    });
+    const layerHtml = layers.map((m, i) => {
+      const media = m.video
+        ? `<video data-start="${m.start || 0}" muted loop playsinline preload="${n === 1 ? "auto" : "none"}" poster="${esc(m.poster || "")}" src="${esc(hd && m.videoHD ? m.videoHD : m.video)}" aria-hidden="true"></video>`
+        : `<img src="${esc(m.image)}" alt="" ${n === 1 && i === 0 ? "" : 'loading="lazy"'} onerror="this.classList.add('missing')">`;
+      return `<div class="layer${m.mono ? " mono" : ""}${i === 0 ? " on" : ""}" data-l="${i}">${media}</div>`;
+    }).join("");
+
+    const beatHtml = beats.map((b, i) => `
+      <div class="beat${i === 0 ? " on" : ""}" data-m="${b.m}">
+        ${b.kicker ? `<p class="kicker">${esc(b.kicker)}</p>` : ""}
+        ${b.title ? `<h${n === 1 && i === 0 ? 1 : 2} class="headline">${b.title}</h${n === 1 && i === 0 ? 1 : 2}>` : ""}
+        ${b.text ? `<p class="lede">${esc(b.text)}</p>` : ""}
+        ${b.stats ? `<ul class="stats">${b.stats.map((s) => `<li><b>${esc(s.value)}</b><span>${esc(s.label)}</span></li>`).join("")}</ul>` : ""}
+        ${b.facts ? `<ul class="facts">${b.facts.map((f, k) => `<li style="--k:${k}">${esc(f)}</li>`).join("")}</ul>` : ""}
+        ${b.cta ? `<a class="pill light" href="#book">Book a private tour ${arrow}</a>` : ""}
+      </div>`).join("");
+
     return `
-    <section class="scene ${cls}" ${id ? `id="${id}"` : ""} data-ch="${ch}" style="--len:${len}">
+    <section class="story" id="ch-${n}" data-n="${n}" style="--beats:${beats.length}">
       <div class="stage">
-        ${media}
-        <div class="shade"></div>
-        <div class="copy">${html}</div>
+        ${layerHtml}
+        <div class="scrim"></div>
+        <div class="copy">${beatHtml}</div>
+        ${n === 1 ? `<p class="hint"><i></i>Scroll</p>` : ""}
       </div>
     </section>`;
   }
 
-  const waLink = (text) => `https://wa.me/${Z.contact.whatsapp}?text=${encodeURIComponent(text)}`;
+  const head = (ch, n) => `
+    <p class="eyebrow"><span>${pad(n)}</span> ${esc(ch.eyebrow)}</p>
+    <h2 class="display">${ch.title}</h2>
+    ${ch.text ? `<p class="intro">${esc(ch.text)}</p>` : ""}`;
 
-  function build() {
-    const t = Z.tour;
-    let out = "";
-
-    // 1. Arrival lockup
-    out += scene({
-      id: "arrive", ch: "arrive", len: 1.5, cls: "first k-lockup", image: Z.intro.image,
-      video: Z.intro.video && (innerWidth > 900 && Z.intro.videoHD ? Z.intro.videoHD : Z.intro.video),
-      html: `
-        <p class="kicker">${esc(Z.intro.kicker)}</p>
-        <h1 class="lockup">${esc(Z.brand.name).replace(" ", "<br>")}</h1>
-        <p class="script">${esc(Z.brand.tagline)}</p>
-        <p class="cue">Scroll to begin the walk <span>↓</span></p>`,
-    });
-
-    // 2. Statement
-    out += scene({ ch: "arrive", len: 1.5, cls: "k-statement", image: Z.statement.image, html: `<p class="statement">${Z.statement.text}</p>` });
-
-    // 3. The land, in numbers
-    out += scene({
-      ch: "arrive", len: 1.7, cls: "k-stats", image: Z.land.image,
-      html: `<h2 class="eyebrow">${esc(Z.land.title)}</h2>
-        <ul class="stats">${Z.land.stats.map((s) => `
-          <li><b>${esc(s.value)}</b> <span class="unit">${esc(s.unit)}</span><small>${esc(s.label)}</small></li>`).join("")}
-        </ul>`,
-    });
-
-    // 4. Tour title card
-    out += `
-    <section class="card-title" id="tour" data-ch="tour">
-      <p class="eyebrow">Chapter 02</p>
-      <h2 class="big">${esc(Z.tourTitle)}</h2>
-      <p class="sub">${esc(Z.tourSub)}</p>
-      ${Z.tourButton && Z.tourButton.url ? `<a class="btn ghost" href="${esc(Z.tourButton.url)}" target="_blank" rel="noopener">${esc(Z.tourButton.label)}</a>` : ""}
+  function proof(ch, n) {
+    return `
+    <section class="panel light" id="ch-${n}" data-n="${n}">
+      <div class="wrap">
+        ${head(ch, n)}
+        <div class="proof">${ch.items.map((it) => `
+          <figure class="pcard reveal">
+            <div class="pimg"><img src="${esc(it.image)}" alt="${esc(it.title)}" loading="lazy" onerror="this.classList.add('missing')"><span class="tag">${esc(it.tag)}</span></div>
+            <figcaption><b>${esc(it.title)}</b><span>${esc(it.text)}</span></figcaption>
+          </figure>`).join("")}
+        </div>
+        <div class="quotes">${ch.quotes.map((q) => `
+          <blockquote class="reveal"><p>“${esc(q.quote)}”</p><cite><b>${esc(q.who)}</b> · ${esc(q.where)}</cite></blockquote>`).join("")}
+        </div>
+      </div>
     </section>`;
+  }
 
-    // 5. Room-by-room
-    t.forEach((r, i) => {
-      out += scene({
-        ch: "tour", len: 1.6, cls: "k-room", image: r.image, alt: r.room,
-        html: `
-          <p class="count"><b>${pad(i + 1)}</b> / ${pad(t.length)}</p>
-          <h2 class="title">${esc(r.room)}</h2>
-          <p class="line">${esc(r.line)}</p>
-          ${r.spec ? `<p class="chip">${esc(r.spec)}</p>` : ""}`,
-      });
-    });
-
-    // 6. Villa types
-    out += `
-    <section class="flow" id="villas" data-ch="villas">
-      <p class="eyebrow">Chapter 03</p>
-      <h2 class="big">${esc(Z.homesTitle)}</h2>
-      <p class="sub">${esc(Z.homesSub)}</p>
-      <div class="cards" tabindex="0" aria-label="Home types">
-        ${Z.villas.map((v) => `
-        <article class="vcard">
-          <div class="vimg"><img src="${esc(v.image)}" alt="${esc(v.name)} villa" loading="lazy" onerror="this.classList.add('missing')"><span class="status">${esc(v.status)}</span></div>
-          <div class="vbody">
-            <h3>${esc(v.name)}</h3>
-            <p class="config">${esc(v.config)}</p>
-            <dl>${v.rows.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd></div>`).join("")}</dl>
-            <p class="price">${esc(v.price)}</p>
-            <button class="btn" data-enquire="${esc(v.name)}">Enquire about this home</button>
+  function ownership(ch, n) {
+    return `
+    <section class="panel dark" id="ch-${n}" data-n="${n}">
+      <div class="wrap">
+        ${head(ch, n)}
+        <div class="own">
+          <div class="owncol reveal">
+            <h3>Yours, privately</h3>
+            <ul>${ch.yours.map((y) => `<li><span class="tick" aria-hidden="true">✓</span>${esc(y)}</li>`).join("")}</ul>
           </div>
-        </article>`).join("")}
-      </div>
-      ${Z.brand.brochurePdf ? `<a class="btn ghost" href="${esc(Z.brand.brochurePdf)}" download>Download the brochure</a>` : ""}
-      ${Z.brand.stayUrl ? `
-      <aside class="stay">
-        <h3>${esc(Z.stayPitch.title)}</h3>
-        <p>${esc(Z.stayPitch.text)}</p>
-        <a class="btn ghost" href="${esc(Z.brand.stayUrl)}" target="_blank" rel="noopener">${esc(Z.stayPitch.button)} →</a>
-      </aside>` : ""}
-    </section>`;
-
-    // 7. Amenities — words light up as you scroll
-    out += scene({
-      id: "life", ch: "life", len: 2.2, cls: "k-words", image: Z.amenities.image,
-      html: `<p class="eyebrow">Chapter 04 · Life here</p>
-        <div class="words">${Z.amenities.words.map((w, i) => `<span class="w${i % 2 ? " indent" : ""}">${esc(w)}</span>`).join("")}</div>
-        <p class="note">${esc(Z.amenities.note)}</p>`,
-    });
-
-    // 7b. Residents
-    if (Z.residents && Z.residents.length) out += `
-    <section class="flow" data-ch="life">
-      <p class="eyebrow">The Zioneers</p>
-      <h2 class="big">Ask the people<br><em>who live here.</em></h2>
-      <div class="quotes">${Z.residents.map((r) => `
-        <figure><blockquote>“${esc(r.quote)}”</blockquote><figcaption><b>${esc(r.who)}</b>${r.where ? ` · ${esc(r.where)}` : ""}</figcaption></figure>`).join("")}
+          <div class="owncol reveal">
+            <h3>Around you</h3>
+            <ul>${ch.shared.map((s) => `<li><span>${esc(s.name)}</span>${s.terms ? `<em>${esc(s.terms)}</em>` : ""}</li>`).join("")}</ul>
+          </div>
+        </div>
+        <p class="note reveal">${esc(ch.note)}</p>
       </div>
     </section>`;
+  }
 
-    // 8. Location
-    out += `
-    <section class="flow" id="location" data-ch="location">
-      <p class="eyebrow">Chapter 05</p>
-      <h2 class="big">${Z.location.title}</h2>
-      <ul class="dist">${Z.location.distances.map((d) => `<li><span>${esc(d.place)}</span><b>${esc(d.time)}</b></li>`).join("")}</ul>
-      ${Z.location.note ? `<p class="sub">${esc(Z.location.note)}</p>` : ""}
-      <a class="btn ghost" href="${esc(Z.location.mapUrl)}" target="_blank" rel="noopener">Open in Google Maps</a>
-    </section>`;
-
-    // 9. Good to know + booking
-    out += `
-    <section class="flow" id="visit" data-ch="visit">
-      <p class="eyebrow">Chapter 06</p>
-      <h2 class="big">Good to know</h2>
-      <div class="faq">${Z.info.map((f) => `
-        <details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("")}
+  function value(ch, n) {
+    return `
+    <section class="panel light" id="ch-${n}" data-n="${n}">
+      <div class="wrap">
+        ${head(ch, n)}
+        <dl class="ledger">${ch.rows.map(([k, v]) => `<div class="reveal"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>
+        <p class="note reveal">${esc(ch.note)}</p>
       </div>
+    </section>`;
+  }
 
-      <div class="book">
-        <h2 class="big">Come see it<br><em>in person.</em></h2>
-        <p class="sub">Pick a day and we'll show you around the course, the club and the homes.${Z.contact.hours ? ` ${esc(Z.contact.hours)}.` : ""}</p>
+  function homes(ch, n) {
+    return `
+    <section class="panel light alt" id="ch-${n}" data-n="${n}">
+      <div class="wrap">
+        ${head(ch, n)}
+        <div class="filters" role="group" aria-label="Filter homes">${ch.filters.map((f, i) => `<button class="chip${i === 0 ? " on" : ""}" data-filter="${esc(f)}" aria-pressed="${i === 0}">${esc(f)}</button>`).join("")}</div>
+        <div class="homes">${ch.homes.map((h) => `
+          <article class="home" data-kind="${esc(h.kind)}">
+            <div class="himg"><img src="${esc(h.image)}" alt="${esc(h.name)}" loading="lazy" onerror="this.classList.add('missing')"><span class="tag">${esc(h.status)}</span></div>
+            <div class="hbody">
+              <h3>${esc(h.name)}</h3>
+              <p class="beds">${esc(h.beds)}</p>
+              <p class="size">${esc(h.size)}</p>
+              <p class="price">${esc(h.price)}</p>
+              <div class="hbtns">
+                <button class="pill dark" data-enquire="${esc(h.name)}" data-want="Private tour">Enquire ${arrow}</button>
+                <button class="pill ghost-d" data-enquire="${esc(h.name)}" data-want="Floor plans & prices">Floor plan</button>
+              </div>
+            </div>
+          </article>`).join("")}
+        </div>
+        <aside class="stay reveal">
+          <div><h3>${esc(ch.stay.title)}</h3><p>${esc(ch.stay.text)}</p></div>
+          <a class="pill dark" href="${esc(Z.brand.stayUrl)}" target="_blank" rel="noopener">${esc(ch.stay.button)} ${arrow}</a>
+        </aside>
+      </div>
+    </section>`;
+  }
+
+  function booking() {
+    const homesCh = Z.chapters.find((c) => c.type === "homes");
+    return `
+    <section class="panel light" id="book" data-n="${Z.chapters.length}">
+      <div class="wrap book">
+        <div>
+          <p class="eyebrow"><span>${pad(Z.chapters.length)}</span> Private tour</p>
+          <h2 class="display">Come and see it<br>for yourself.</h2>
+          <p class="intro">Tell us when you'd like to come. We'll show you the course, the club and the homes, at your pace.</p>
+          <p class="direct">
+            <a href="tel:${esc(Z.contact.phone)}">${esc(Z.contact.phone.replace(/^\+91/, "+91 "))}</a>
+            <a href="mailto:${esc(Z.contact.email)}">${esc(Z.contact.email)}</a>
+          </p>
+        </div>
         <form id="visit-form" novalidate>
-          <label>Your name<input name="name" autocomplete="name" required></label>
+          <label>Name<input name="name" autocomplete="name" required></label>
           <label>Phone<input name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
-          <label>Preferred date<input name="date" type="date"></label>
+          <div class="two">
+            <label>Preferred date<input name="date" type="date"></label>
+            <label>I'd like
+              <select name="want"><option>Private tour</option><option>Floor plans & prices</option><option>A weekend stay</option></select>
+            </label>
+          </div>
           <label>Interested in
-            <select name="villa"><option value="">Not sure yet</option>${Z.villas.map((v) => `<option>${esc(v.name)}</option>`).join("")}</select>
+            <select name="home"><option value="">Just exploring</option>${homesCh.homes.map((h) => `<option>${esc(h.name)}</option>`).join("")}</select>
           </label>
-          <label>Anything else? <span class="opt">(optional)</span><textarea name="note" rows="2"></textarea></label>
+          <label>Anything else? <span class="opt">Optional</span><textarea name="note" rows="2"></textarea></label>
           <p class="err" role="alert" hidden>Please add your name and phone number.</p>
-          <button class="btn" type="submit">Book my site visit on WhatsApp</button>
+          <button class="pill dark wide" type="submit">Send on WhatsApp ${arrow}</button>
+          <p class="fine">Opens WhatsApp with your request ready to send to our team.</p>
         </form>
-        <p class="or">or <a href="tel:${esc(Z.contact.phone)}">call ${esc(Z.contact.phone)}</a> · <a href="mailto:${esc(Z.contact.email)}">${esc(Z.contact.email)}</a></p>
       </div>
-
-      <footer class="foot">
-        <p class="lockup small">${esc(Z.brand.name)}</p>
-        <p>${esc(Z.contact.siteOffice)}</p>
+      <div class="wrap">
+        <h3 class="faqh">Good to know</h3>
+        <div class="faq">${Z.faq.map((f) => `<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("")}</div>
+      </div>
+      <footer class="wrap foot">
+        <p class="wordmark big">${esc(Z.brand.full)}</p>
+        <p>${esc(Z.contact.address)}</p>
         <p class="links">
           <a href="${esc(Z.brand.mainWebsite)}" target="_blank" rel="noopener">zionhills.in</a>
-          ${Z.brand.instagram ? `<a href="${esc(Z.brand.instagram)}" target="_blank" rel="noopener">Instagram</a>` : ""}
-          ${Z.brand.youtube ? `<a href="${esc(Z.brand.youtube)}" target="_blank" rel="noopener">YouTube</a>` : ""}
-          ${Z.brand.stayUrl ? `<a href="${esc(Z.brand.stayUrl)}" target="_blank" rel="noopener">Book a stay</a>` : ""}
+          <a href="${esc(Z.brand.instagram)}" target="_blank" rel="noopener">Instagram</a>
+          <a href="${esc(Z.brand.youtube)}" target="_blank" rel="noopener">YouTube</a>
+          <a href="${esc(Z.brand.stayUrl)}" target="_blank" rel="noopener">Book a stay</a>
         </p>
-        <p class="fine">Images are indicative. Prices, plans and specifications are subject to change.</p>
+        <p class="fine">Images are of Zion Hills except the city scene. Plans, sizes and specifications are indicative and subject to change.</p>
       </footer>
     </section>`;
-
-    $("#story").innerHTML = out;
   }
 
-  /* ---------- Contact wiring ---------- */
-  function wireContact() {
-    const hello = `Hi, I'm on the Zion Hills tour${source ? ` (via ${source})` : ""} and would like to know more.`;
-    $("#act-call").href = `tel:${Z.contact.phone}`;
-    $("#act-wa").href = waLink(hello);
+  function build() {
+    const render = { story, proof, ownership, value, homes };
+    $("#story").innerHTML = Z.chapters.map((ch, i) => render[ch.type](ch, i + 1)).join("") + booking();
+    $(".bars").innerHTML = Z.chapters.map((ch, i) =>
+      `<a href="#ch-${i + 1}" data-n="${i + 1}" aria-label="${pad(i + 1)} ${esc(ch.label)}"><i></i></a>`).join("");
+  }
+
+  /* ---------------- Contact + homes ---------------- */
+  function wire() {
+    const hello = `Hi, I'm on the Zion Hills story${source ? ` (via ${source})` : ""} and would like to know more.`;
+    $("#dock-call").href = `tel:${Z.contact.phone}`;
+    $("#dock-wa").href = waLink(hello);
+
+    // filters
+    $$(".chip").forEach((c) => c.addEventListener("click", () => {
+      $$(".chip").forEach((x) => { x.classList.toggle("on", x === c); x.setAttribute("aria-pressed", x === c); });
+      const f = c.dataset.filter;
+      $$(".home").forEach((h) => { h.hidden = !(f === "All" || h.dataset.kind === f); });
+    }));
 
     const form = $("#visit-form");
-    const select = form.elements.villa;
-
-    // "Enquire" on a villa card pre-selects it and jumps to the form
-    $$("[data-enquire]").forEach((b) =>
-      b.addEventListener("click", () => {
-        const opt = [...select.options].find((o) => o.text === b.dataset.enquire);
-        if (opt) select.value = opt.value || opt.text;
-        $(".book").scrollIntoView({ behavior: "smooth", block: "start" });
-        setTimeout(() => form.elements.name.focus({ preventScroll: true }), 600);
-      })
-    );
+    $$("[data-enquire]").forEach((b) => b.addEventListener("click", () => {
+      form.elements.home.value = b.dataset.enquire;
+      form.elements.want.value = b.dataset.want;
+      $("#book").scrollIntoView({ behavior: "smooth" });
+      setTimeout(() => form.elements.name.focus({ preventScroll: true }), 700);
+    }));
 
     form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const f = form.elements;
-      const err = $(".err", form);
+      const f = form.elements, err = $(".err", form);
       if (!f.name.value.trim() || !f.phone.value.trim()) { err.hidden = false; return; }
       err.hidden = true;
       const lines = [
-        "Hi, I'd like to book a site visit at Zion Hills.",
+        `Hi, I'd like: ${f.want.value} at Zion Hills.`,
         `Name: ${f.name.value.trim()}`,
         `Phone: ${f.phone.value.trim()}`,
         f.date.value && `Preferred date: ${f.date.value}`,
-        `Interested in: ${f.villa.value || "Not sure yet"}`,
+        `Interested in: ${f.home.value || "Just exploring"}`,
         f.note.value.trim() && `Note: ${f.note.value.trim()}`,
         source && `Came from QR: ${source}`,
       ].filter(Boolean);
@@ -213,51 +230,80 @@
     });
   }
 
-  /* ---------- Scroll engine ---------- */
+  /* ---------------- Scroll engine ---------------- */
   function engine() {
-    const scenes = $$(".scene");
-    const rooms = $$(".k-room");
-    const links = $$(".chapters a");
-    const bar = $(".progress i");
-    const railCount = $(".rail-count");
-    const sections = $$("[data-ch]");
+    const stories = $$(".story").map((el) => ({
+      el, n: +el.dataset.n,
+      beats: $$(".beat", el), layers: $$(".layer", el), idx: 0,
+    }));
+    const chapters = $$("[data-n]", $("#story"));
+    const bars = $$(".bars a");
+    const now = $(".now");
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let ticking = false, lastCh = "";
+    let ticking = false, cur = 0;
+
+    function setBeat(s, i) {
+      if (i === s.idx) return;
+      s.idx = i;
+      s.beats.forEach((b, k) => b.classList.toggle("on", k === i));
+      const m = +s.beats[i].dataset.m;
+      s.layers.forEach((l, k) => l.classList.toggle("on", k === m));
+    }
+
+    function media(s, visible) {
+      s.layers.forEach((l) => {
+        const v = $("video", l);
+        if (!v) return;
+        const want = visible && l.classList.contains("on") && !reduce;
+        if (want && v.paused) {
+          if (!v.dataset.seeked && +v.dataset.start) {
+            const go = () => { v.currentTime = +v.dataset.start; v.dataset.seeked = 1; };
+            v.readyState >= 1 ? go() : v.addEventListener("loadedmetadata", go, { once: true });
+          }
+          v.play().catch(() => {});
+        } else if (!want && !v.paused) v.pause();
+      });
+    }
 
     function update() {
       ticking = false;
-      const vh = innerHeight, y = scrollY;
-      const max = document.documentElement.scrollHeight - vh;
-      bar.style.transform = `scaleX(${max > 0 ? y / max : 0})`;
+      const vh = innerHeight;
 
-      for (const s of scenes) {
-        const r = s.getBoundingClientRect();
-        if (r.bottom < -vh || r.top > vh * 2) continue; // off-screen: skip
-        const p = Math.min(1, Math.max(0, -r.top / (r.height - vh)));
-        s.style.setProperty("--p", reduce ? 0.5 : p.toFixed(4));
-        if (s.classList.contains("k-words")) {
-          const ws = $$(".w", s), lit = Math.floor(p * (ws.length + 1.5));
-          ws.forEach((w, i) => w.classList.toggle("on", i < lit));
+      for (const s of stories) {
+        const r = s.el.getBoundingClientRect();
+        const visible = r.top < vh && r.bottom > 0;
+        // warm up every picture in a chapter before the visitor reaches it
+        if (!s.warm && r.top < vh * 2.5) { s.warm = true; $$("img", s.el).forEach((im) => (im.loading = "eager")); }
+        if (visible) {
+          const p = Math.min(0.9999, Math.max(0, -r.top / (r.height - vh)));
+          setBeat(s, Math.floor(p * s.beats.length));
         }
+        media(s, visible);
       }
 
-      // current chapter = last section whose top passed the middle of the screen
-      let ch = "arrive";
-      for (const s of sections) if (s.getBoundingClientRect().top < vh * 0.5) ch = s.dataset.ch;
-      if (ch !== lastCh) {
-        lastCh = ch;
-        const nav = $(".chapters");
-        links.forEach((a) => {
-          const on = a.dataset.ch === ch;
-          a.classList.toggle("on", on);
-          if (on) nav.scrollTo({ left: a.offsetLeft - nav.clientWidth / 2 + a.offsetWidth / 2, behavior: "smooth" });
-        });
+      // which chapter, and how far through it
+      let active = 1;
+      chapters.forEach((c) => {
+        const r = c.getBoundingClientRect();
+        const n = +c.dataset.n;
+        if (r.top <= vh * 0.45) active = n;
+        const f = Math.min(1, Math.max(0, (vh * 0.45 - r.top) / r.height));
+        const bar = bars[n - 1];
+        if (bar && c.id !== "book") bar.style.setProperty("--f", f);
+      });
+      if (active !== cur) {
+        cur = active;
+        const ch = Z.chapters[active - 1];
+        now.innerHTML = `<b>${pad(active)}</b> ${esc(ch.label)}`;
+        bars.forEach((b, i) => { if (i < active - 1) b.style.setProperty("--f", 1); });
       }
 
-      // side rail counter shows which room of the tour you're in
-      let idx = 0;
-      rooms.forEach((rm, i) => { if (rm.getBoundingClientRect().top < vh * 0.5) idx = i + 1; });
-      railCount.textContent = idx ? `${pad(idx)}/${pad(rooms.length)}` : "ZH";
+      // light sections under the top bar → dark text
+      const under = document.elementFromPoint(innerWidth / 2, 70);
+      document.body.classList.toggle("top-light", !!(under && under.closest(".light")));
+      document.body.classList.toggle("top-panel", !!(under && under.closest(".panel")));
+      // hide the floating booking dock once the booking form itself is on screen
+      document.body.classList.toggle("at-book", $("#book").getBoundingClientRect().top < vh * 0.7);
     }
 
     const req = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
@@ -265,12 +311,13 @@
     addEventListener("resize", req);
     update();
 
-    // fade-up for regular (non-pinned) blocks
-    const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && e.target.classList.add("in")), { threshold: 0.15 });
-    $$(".flow > *, .card-title > *").forEach((el) => io.observe(el));
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+    }), { threshold: 0.12 });
+    $$(".reveal, .panel .eyebrow, .panel .display, .panel .intro, .home, .filters").forEach((el) => io.observe(el));
   }
 
   build();
-  wireContact();
+  wire();
   engine();
 })();
