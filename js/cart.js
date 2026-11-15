@@ -224,7 +224,7 @@
     let enabled = store.get("zh-sound") !== "off";
     let ambOn = false, musicOn = false, scene = "gate", wanted = "city", pending = null, timers = [];
     const BPM = 80, BEAT = 60 / BPM, BAR = BEAT * 4;
-    const BED = .6, LIFT = 1;
+    const BED = .34, LIFT = .55;
     const C9 = [130.81, 196, 246.94, 293.66, 329.63], Am9 = [110, 164.81, 196, 246.94, 261.63],
       F9 = [87.31, 130.81, 164.81, 196, 220], G69 = [98, 146.83, 164.81, 220, 246.94],
       Fadd9 = [87.31, 130.81, 174.61, 220, 261.63], Dm9 = [73.42, 130.81, 174.61, 220, 261.63];
@@ -262,7 +262,7 @@
         ctx = new AC();
         const comp = ctx.createDynamicsCompressor();      // glue the mix, keep peaks safe on phone speakers
         comp.threshold.value = -20; comp.knee.value = 12; comp.ratio.value = 3; comp.attack.value = .01; comp.release.value = .3;
-        master = ctx.createGain(); master.gain.value = enabled ? .9 : 0;
+        master = ctx.createGain(); master.gain.value = enabled ? .75 : 0;
         comp.connect(master); master.connect(ctx.destination);
         verb = ctx.createConvolver(); verb.buffer = impulse(2.8);
         const verbOut = ctx.createGain(); verbOut.gain.value = .55; verb.connect(verbOut); verbOut.connect(comp);
@@ -519,7 +519,7 @@
     }
     function setEnabled(v) {
       enabled = v; store.set("zh-sound", v ? "on" : "off");
-      if (ensure()) master.gain.setTargetAtTime(v ? .9 : 0, ctx.currentTime, .15);
+      if (ensure()) master.gain.setTargetAtTime(v ? .75 : 0, ctx.currentTime, .15);
       if (v) startMusic();
     }
     document.addEventListener("visibilitychange", () => { if (!ctx) return; document.hidden ? ctx.suspend() : ctx.resume(); });
@@ -593,8 +593,7 @@
 
   /* ======================= 0. Gate: sink the putt ======================= */
   function gate() {
-    const g = $("#gate"), ball = $("#ball"), face = $("#ball i"), cup = $(".cup"), green = $(".green"), msg = $(".gate-msg");
-    const film = $(".g-film"), scene = $(".g-scene"), black = $(".g-black");
+    const g = $("#gate"), ball = $("#ball"), face = $("#ball i"), cup = $(".cup"), msg = $(".gate-msg");
     $("#gate-title em").textContent = C.gate.title;
     $("#gate-title span").textContent = C.gate.sub;
     $(".gate-hint").textContent = C.gate.hint;
@@ -603,115 +602,56 @@
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     scrollTo(0, 0);
 
-    /* ---- The opening, shot on a real Zion Hills green ----
-       Black → the Zion Hills logo → the camera rises out of the cup in slow motion (from the
-       Zion Hills film, 132.08–132.92 s) and holds on the real hole. You putt a real-sized ball into
-       the real cup, and the camera falls into the hole to begin the story. */
-    const F = { t0: 132.08, t1: 132.92, rate: .4, cx: .577, cy: .352, cd: .057 };
-    let live = false, started = false, cupAt = { x: innerWidth / 2, y: innerHeight * .36 };
-    function layout() {
-      const W = innerWidth, H = innerHeight;
-      if (g.classList.contains("nofilm")) {
-        cupAt = { x: W / 2, y: H * .36 }; place(36); return;
-      }
-      const vw = film.videoWidth || 1920, vh = film.videoHeight || 1080;
-      const s = Math.max(W / vw, H / vh), dw = vw * s, dh = vh * s;
-      const ox = Math.min(0, Math.max(W - dw, W / 2 - F.cx * dw)), oy = (H - dh) / 2;   // keep the cup centred
-      film.style.objectPosition = `${dw > W ? (ox / (W - dw)) * 100 : 50}% ${dh > H ? (oy / (H - dh)) * 100 : 50}%`;
-      cupAt = { x: ox + F.cx * dw, y: oy + F.cy * dh };
-      place(F.cd * dw);
-    }
-    function place(cd) {
-      green.style.left = cupAt.x + "px"; green.style.top = cupAt.y + "px";
-      g.style.setProperty("--cd", cd.toFixed(1) + "px");
-      g.style.setProperty("--bd", clamp(cd * .4, 22, 40).toFixed(1) + "px");      // a real ball is 40% of a real cup
-      scene.style.transformOrigin = `${cupAt.x}px ${cupAt.y}px`;
-    }
-    addEventListener("resize", () => { if (!busy) layout(); });
-
-    const goLive = () => {
-      if (live) return; live = true; film.pause();
-      if (!g.classList.contains("nofilm") && film.currentTime < F.t1 - .05) { try { film.currentTime = F.t1; } catch (e) { /* not ready */ } }   // always hold on the real green and hole
-      g.classList.add("live"); setTimeout(() => ball.focus({ preventScroll: true }), 400); };
-    function fallback() {                               // no video (offline, blocked): a still of the course and a drawn cup
-      if (started) return; started = true;
-      g.classList.remove("film"); g.classList.add("nofilm", "ready");
-      layout(); setTimeout(goLive, 600);
-    }
-    function begin() {
-      if (started) return; started = true;
-      const wait = Math.max(0, 1300 - (performance.now() - t0));   // let the logo breathe
-      setTimeout(() => {
-        layout(); g.classList.add("ready");
-        if (reduce) { film.currentTime = F.t1; goLive(); return; }
-        film.playbackRate = F.rate;
-        const p = film.play();
-        if (p && p.catch) p.catch(() => { film.currentTime = F.t1; goLive(); });   // autoplay refused: hold the final frame
-        g.classList.add("rolling");
-        setTimeout(goLive, ((F.t1 - F.t0) / F.rate) * 1000 + 400);              // safety: never wait longer than the shot
-      }, wait);
-    }
-    const t0 = performance.now();
-    const conn = navigator.connection || {};
-    const slow = (navigator.deviceMemory && navigator.deviceMemory < 4) || conn.saveData || /(^|-)2g|3g/.test(conn.effectiveType || "");
-    film.addEventListener("loadedmetadata", () => { try { film.currentTime = F.t0; } catch (e) { /* not ready */ } }, { once: true });
-    film.addEventListener("seeked", () => { if (!started && film.readyState >= 2) begin(); });
-    film.addEventListener("canplay", () => { if (!started && Math.abs(film.currentTime - F.t0) < .2) begin(); });
-    film.addEventListener("timeupdate", () => { if (film.currentTime >= F.t1) goLive(); });
-    if ("requestVideoFrameCallback" in film) {
-      const watch = () => { if (film.currentTime >= F.t1 - .02) goLive(); else if (!live) film.requestVideoFrameCallback(watch); };
-      film.requestVideoFrameCallback(watch);
-    }
-    film.addEventListener("error", fallback);
-    film.src = C.dream.film(slow ? "720p" : "1080p");
-    setTimeout(() => { if (!started) fallback(); }, 6000);
-    layout();
-
     // Forgiving putt: tap, drag, flick or pull back — every gesture sinks it.
+    // The green is drawn in perspective, so the ball shrinks as it rolls away and spins as it goes.
     let busy = false, drag = null, off = { x: 0, y: 0 }, travelled = 0;
     const centre = (el) => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
-    const setBall = (dx, dy, s = 1, o = 1, light = 1) => {
+    let home = null;                                          // the ball's resting centre
+    const depth = (dy) => { const c = centre(cup); return clamp(-dy / Math.max(1, home.y - c.y)); };
+    const setBall = (dx, dy, s = 1, o = 1) => {
+      if (!home) home = centre(ball);
       travelled += Math.hypot(dx - off.x, dy - off.y);
       off = { x: dx, y: dy };
-      ball.style.transform = `translate(${dx}px, ${dy}px) scale(${s})`;
+      const k = (1 - .62 * depth(dy)) * s;                    // far away = smaller
+      ball.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
       ball.style.opacity = o;
-      ball.style.filter = light < 1 ? `brightness(${light.toFixed(2)})` : "";
-      face.style.transform = `rotate(${(-travelled * 3).toFixed(1)}deg)`;     // the dimples turn as it rolls
+      face.style.transform = `rotate(${(-travelled * 2.4).toFixed(1)}deg)`;
     };
 
     function animate(dur, step, done, ease = (k) => 1 - Math.pow(1 - k, 3)) {
-      const ts = performance.now();
+      const t0 = performance.now();
       (function f(now) {
-        const k = clamp((now - ts) / dur);
+        const k = clamp((now - t0) / dur);
         step(ease(k), k);
         k < 1 ? requestAnimationFrame(f) : done && done();
-      })(ts);
+      })(t0);
     }
 
-    // Roll the ball into the real cup: it slows like a putt on fast greens, breaks a touch, and drops.
+    // Roll the ball from wherever it is now into the cup, with a little break, then open the page.
     function holeIt(line) {
-      if (busy || !live) return;
+      if (busy) return;
       busy = true; drag = null; ball.classList.add("moving");
-      const now = centre(ball);
+      if (!home) home = centre(ball);
+      const now = centre(ball), c = centre(cup);
       const sx = off.x, sy = off.y;
-      const tx = sx + (cupAt.x - now.x), ty = sy + (cupAt.y - now.y);
-      const brk = (Math.random() < .5 ? -1 : 1) * Math.min(18, Math.hypot(tx - sx, ty - sy) * .05);
-      const dur = reduce ? 1 : 1650;
+      const tx = sx + (c.x - now.x), ty = sy + (c.y - now.y) - 1;
+      const brk = (Math.random() < .5 ? -1 : 1) * Math.min(22, Math.hypot(tx - sx, ty - sy) * .07);
+      const dur = reduce ? 1 : 1350;
       msg.textContent = line || "";
       Sound.tick(); Sound.roll(dur / 1000);
+      // a putt slows as it nears the hole: ease-out with a long tail
       animate(dur, (e) => setBall(sx + (tx - sx) * e + Math.sin(e * Math.PI) * brk, sy + (ty - sy) * e), () => {
-        Sound.drop(); Sound.applause();
-        // it falls below the lip: smaller, into shadow, gone
-        animate(300, (e) => setBall(tx + e * 1.5, ty + e * 2, 1 - e * .3, 1 - e * e, 1 - e * .75), () => {
+        Sound.drop(); Sound.applause(); g.classList.add("sunk");
+        animate(240, (e) => setBall(tx, ty + e * 3, 1 - e * .4, 1 - e), () => {
           msg.textContent = "In the hole.";
-          setTimeout(() => close(true), 750);
+          setTimeout(() => close(true), 700);
         }, (k) => k * k);
-      }, (k) => 1 - Math.pow(1 - k, 2.4));
+      }, (k) => 1 - Math.pow(1 - k, 2.6));
     }
 
     function onDown(e) {
-      if (busy || !live) return;
-      Sound.ensure(); if (Sound.enabled) Sound.startAmbience();   // this touch unlocks sound: birds and a breeze
+      if (busy) return;
+      Sound.ensure(); if (Sound.enabled) Sound.startAmbience(); // this touch unlocks sound: birds and a breeze
       drag = { sx: e.clientX, sy: e.clientY, moved: 0, dy: 0 };
       ball.classList.add("moving");
       try { g.setPointerCapture(e.pointerId); } catch (err) { /* not supported */ }
@@ -720,7 +660,7 @@
       if (!drag || busy) return;
       const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
       drag.moved = Math.max(drag.moved, Math.hypot(dx, dy)); drag.dy = dy;
-      setBall(dx * .9, clamp(dy * .9, -innerHeight * .2, innerHeight * .08));
+      setBall(dx * .9, clamp(dy * .9, -innerHeight * .25, innerHeight * .12));
     }
     function onUp() {
       if (!drag || busy) return;
@@ -731,21 +671,24 @@
     g.addEventListener("pointermove", onMove);
     g.addEventListener("pointerup", onUp);
     g.addEventListener("pointercancel", () => { if (!busy) { drag = null; setBall(0, 0); ball.classList.remove("moving"); } });
-    ball.addEventListener("click", (e) => { if (e.detail === 0 && live) { Sound.ensure(); if (Sound.enabled) Sound.startAmbience(); holeIt("Nice touch…"); } }); // keyboard
+    ball.addEventListener("click", (e) => { if (e.detail === 0) { Sound.ensure(); if (Sound.enabled) Sound.startAmbience(); holeIt("Nice touch…"); } }); // keyboard Enter/Space
+    setTimeout(() => ball.focus({ preventScroll: true }), 300);
 
-    // The camera falls into the hole, and the story begins in the dark.
-    function close() {
+    function close(holed, instant, jump) {
       const finish = () => {
         g.remove(); document.body.classList.remove("gating");
+        if (jump) { const t = $(jump); if (t) scrollTo({ top: t.getBoundingClientRect().top + scrollY - 60, behavior: "instant" }); }
         engineUpdate && engineUpdate();
       };
       if (Sound.enabled) { Sound.whoosh(); Sound.startMusic(); }
-      if (reduce) { finish(); return; }
-      g.classList.add("done", "diving");
-      animate(1400, (e, k) => {
-        scene.style.transform = `scale(${(1 + e * 9).toFixed(3)})`;
-        black.style.opacity = clamp((k - .35) / .55).toFixed(3);
-      }, finish, (k) => k * k * k);
+      if (instant || reduce) { finish(); return; }
+      g.classList.add("done");
+      const c = centre(cup), max = Math.hypot(innerWidth, innerHeight) * 1.1;
+      animate(holed ? 1100 : 600, (e) => {
+        const r = (e * max).toFixed(1);
+        const m = `radial-gradient(circle at ${c.x}px ${c.y}px, transparent ${r}px, #000 ${(+r + 1).toFixed(1)}px)`;
+        g.style.webkitMaskImage = m; g.style.maskImage = m;
+      }, finish, (k) => k * k * (3 - 2 * k));
     }
   }
 

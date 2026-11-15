@@ -752,59 +752,102 @@ body.in-holes .cue { bottom: calc(18px + env(safe-area-inset-bottom)); }
 @media (prefers-reduced-motion: reduce) { .reel { clip-path: none; -webkit-clip-path: none; } .dream-words span:nth-child(2) i { opacity: 1; filter: none; transform: none; transition: none; } }
 .dream-words .wd { display: inline-block; white-space: nowrap; font-weight: inherit; }
 
-/* ===================== Sink the putt — on real footage (final) ===================== */
-.gate.film, .gate.nofilm { background: #000; }
-.g-scene { position: absolute; inset: 0; overflow: hidden; will-change: transform; }
-.g-film { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.4s ease; }
-.gate.rolling .g-film, .gate.live .g-film { opacity: 1; }
-.g-still { position: absolute; inset: 0; display: none; background: url("../images/holes/hole-13.webp") 50% 50% / cover; }
-.gate.nofilm .g-still { display: block; }
-/* a restrained grade: warm highlights, deep greens, dark edges, darker top for the title */
-.g-grade { position: absolute; inset: 0; mix-blend-mode: soft-light; opacity: .55; pointer-events: none;
-  background: linear-gradient(170deg, rgba(255, 210, 150, .5), rgba(255, 180, 120, .1) 40%, rgba(10, 40, 20, .45)); }
-.g-vig { position: absolute; inset: 0; pointer-events: none; background:
-  radial-gradient(130% 85% at 50% 48%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, .55) 100%),
-  linear-gradient(180deg, rgba(0, 0, 0, .55) 0%, rgba(0, 0, 0, 0) 26%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, .5) 100%); }
-.g-grain { position: absolute; inset: -50%; pointer-events: none; opacity: .07; mix-blend-mode: overlay;
+
+/* ===================== Sink the putt — refined (drawn, no photos) ===================== */
+/* morning sky with a low sun */
+.g-sky { height: 42%; background:
+  radial-gradient(60% 55% at 22% 92%, rgba(255, 236, 196, .95), rgba(255, 236, 196, 0) 70%),
+  linear-gradient(180deg, #dfe9ec 0%, #eef1e6 42%, #f6eed8 78%, #f3e6c6 100%); }
+.g-sky::after { content: ""; position: absolute; left: 12%; top: 58%; width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 250, 230, .95), rgba(255, 238, 200, .35) 55%, rgba(255, 238, 200, 0)); filter: blur(2px); }
+
+/* distance: two hazy ranges, then the tree line (atmospheric perspective: farther = paler, softer) */
+.g-trees { top: 26%; height: 13%; filter: blur(1.2px); opacity: 1; background:
+  radial-gradient(28% 70% at 6% 100%, #3d6a2c 0 62%, transparent 63%),
+  radial-gradient(18% 60% at 19% 100%, #48773a 0 62%, transparent 63%),
+  radial-gradient(24% 85% at 33% 100%, #34602a 0 62%, transparent 63%),
+  radial-gradient(14% 55% at 46% 100%, #4c7c3a 0 62%, transparent 63%),
+  radial-gradient(26% 90% at 60% 100%, #375f28 0 62%, transparent 63%),
+  radial-gradient(16% 62% at 75% 100%, #456f33 0 62%, transparent 63%),
+  radial-gradient(24% 80% at 90% 100%, #355c27 0 62%, transparent 63%); }
+.g-trees::before { content: ""; position: absolute; left: -5%; right: -5%; bottom: 55%; height: 90%; filter: blur(2.5px); opacity: .55;
+  background:
+    radial-gradient(45% 100% at 20% 100%, #8aa59a 0 60%, transparent 61%),
+    radial-gradient(40% 80% at 62% 100%, #94ae9f 0 60%, transparent 61%),
+    radial-gradient(35% 70% at 92% 100%, #8ba497 0 60%, transparent 61%); }
+
+/* the green: fine grass, soft mowing stripes, dew sheen toward the sun */
+.g-turf { top: 37.5%; }
+.g-plane { background:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.2' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .04  0 0 0 0 .16  0 0 0 0 .02  0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1  0 0 0 0 .25  0 0 0 0 .05  0 0 0 .35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E"),
+  repeating-linear-gradient(90deg, #5a9a35 0, #5f9f38 70px, #6db144 110px, #69ad41 180px, #5a9a35 220px); }
+.g-turf::after { content: ""; position: absolute; inset: 0; pointer-events: none;      /* a cloud's shadow drifting across */
+  background: radial-gradient(40% 30% at 50% 50%, rgba(10, 35, 8, .22), rgba(10, 35, 8, 0) 70%);
+  background-size: 160% 160%; animation: cloud 26s ease-in-out infinite alternate; }
+@keyframes cloud { from { background-position: 120% 30%; } to { background-position: -20% 70%; } }
+.g-light { background:
+  linear-gradient(180deg, rgba(0, 0, 0, 0) 36%, rgba(246, 238, 214, .7) 37.6%, rgba(246, 238, 214, .12) 44%, rgba(246, 238, 214, 0) 52%),
+  radial-gradient(55% 22% at 30% 46%, rgba(255, 246, 214, .28), rgba(255, 246, 214, 0) 70%),
+  radial-gradient(120% 70% at 50% 62%, rgba(0, 0, 0, 0) 55%, rgba(12, 30, 8, .45) 100%),
+  linear-gradient(180deg, transparent 62%, rgba(14, 34, 8, .5) 100%); }
+.g-light::after { content: ""; position: absolute; inset: -50%; pointer-events: none; opacity: .05; mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   animation: grain 1s steps(4) infinite; }
 
-/* the logo card, then black for the dive */
-.g-intro { position: absolute; inset: 0; display: grid; place-items: center; background: #000; transition: opacity 1.1s ease; z-index: 5; }
-.g-intro img { width: min(52vw, 240px); opacity: 0; animation: logoIn 1.4s cubic-bezier(.2, .7, .1, 1) .15s forwards; }
-@keyframes logoIn { from { opacity: 0; transform: scale(.97); filter: blur(6px); } to { opacity: .95; transform: none; filter: none; } }
-.gate.ready .g-intro { opacity: 0; pointer-events: none; }
-.g-black { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 6; }
+/* the cup: a white liner at the back, real depth at the front */
+.cup { width: 32px; height: 11px; background: #eceee6;
+  box-shadow: 0 0 0 2px rgba(96, 150, 60, .95), 0 1px 0 3px rgba(30, 60, 15, .3), 0 0 10px 3px rgba(20, 45, 10, .25); }
+.cup i { inset: 2px 1px -1px; background: radial-gradient(80% 100% at 50% 85%, #020502 45%, #18240f 85%, #2c3a22 100%); }
 
-/* the cup is real: the marker only tells the ball where to go (drawn only if there is no film) */
-.gate .green { position: absolute; width: 0; height: 0; }
-.gate.film .cup { width: var(--cd, 70px); height: var(--cd, 70px); background: none; box-shadow: none; }
-.gate.film .cup i { display: none; }
-.gate.nofilm .cup { width: 36px; height: 13px; }
+/* flagstick: a softer, longer shadow toward the viewer's right */
+.pin-shadow { width: 96px; height: 3px; transform: rotate(14deg); filter: blur(1px);
+  background: linear-gradient(90deg, rgba(8, 26, 4, .38), rgba(8, 26, 4, 0)); }
+.pin { background: linear-gradient(90deg, #c9c9c0, #ffffff 40%, #a9a9a0); }
 
-/* type: quiet, mature */
-.gate .gate-copy { top: calc(7% + env(safe-area-inset-top)); z-index: 2; }
-.gate .gate-copy h1 { color: #fff; text-shadow: 0 2px 30px rgba(0, 0, 0, .45); }
-.gate .gate-copy h1 em { font-size: clamp(42px, 12vw, 76px); }
-.gate .gate-copy h1 span { color: rgba(255, 255, 255, .78); font-size: 11px; letter-spacing: .42em; opacity: 1; }
-.gate .gate-msg { top: calc(19% + env(safe-area-inset-top)); font-size: 22px; z-index: 2; }
-.gate .gate-hint { top: auto; bottom: calc(58px + env(safe-area-inset-bottom)); color: rgba(255, 255, 255, .88); z-index: 2; }
-.gate .gate-foot { color: rgba(255, 255, 255, .6); z-index: 2; }
-.gate .gate-copy, .gate .ball, .gate .gate-hint, .gate .gate-foot { opacity: 0; transition: opacity 1.1s ease; }
-.gate.live .gate-copy, .gate.live .ball, .gate.live .gate-hint, .gate.live .gate-foot { opacity: 1; }
-.gate.live .ball { transition: opacity 1.1s ease .2s; }
-.gate.diving .gate-copy, .gate.diving .gate-hint, .gate.diving .gate-foot, .gate.diving .gate-msg { opacity: 0; transition: opacity .35s ease; }
-
-/* a real ball, sized to the real cup: key light from above-left, soft fill, dimples, contact shadow */
-.gate .ball { top: 76%; width: var(--bd, 30px); height: var(--bd, 30px); margin: calc(var(--bd, 30px) / -2) 0 0 calc(var(--bd, 30px) / -2); z-index: 3; }
-.gate .ball i {
+/* the ball: soft key light, fill, fine dimples, contact shadow */
+.ball i {
   background:
-    radial-gradient(circle at 33% 28%, rgba(255, 255, 255, .95) 0 9%, rgba(255, 255, 255, 0) 30%),
-    radial-gradient(circle, rgba(70, 80, 70, .2) .9px, rgba(0, 0, 0, 0) 1.3px) 0 0 / 3.4px 3.4px,
-    radial-gradient(circle, rgba(70, 80, 70, .14) .9px, rgba(0, 0, 0, 0) 1.3px) 1.7px 1.7px / 3.4px 3.4px,
-    radial-gradient(circle at 40% 34%, #ffffff 0%, #f1f2ee 40%, #cfd4cb 72%, #8e978b 100%);
-  box-shadow: inset -2px -3px 5px rgba(30, 40, 25, .3), inset 1px 1px 2px rgba(255, 255, 255, .9);
+    radial-gradient(circle at 33% 27%, rgba(255, 255, 255, .95) 0 10%, rgba(255, 255, 255, 0) 32%),
+    radial-gradient(circle, rgba(70, 80, 70, .18) 1px, rgba(0, 0, 0, 0) 1.5px) 0 0 / 4.4px 4.4px,
+    radial-gradient(circle, rgba(70, 80, 70, .12) 1px, rgba(0, 0, 0, 0) 1.5px) 2.2px 2.2px / 4.4px 4.4px,
+    radial-gradient(circle at 40% 34%, #ffffff 0%, #f2f3ef 40%, #d0d5cb 72%, #8f988c 100%);
+  box-shadow: inset -3px -5px 8px rgba(30, 40, 25, .28), inset 2px 2px 3px rgba(255, 255, 255, .9);
 }
-.gate .ball::before { left: 18%; right: -30%; bottom: -26%; height: 46%; background: radial-gradient(closest-side, rgba(5, 20, 5, .6), rgba(5, 20, 5, 0)); }
-.gate .ball::after { inset: -14px; border: 1px solid rgba(255, 255, 255, .55); }
-@media (prefers-reduced-motion: reduce) { .g-grain { animation: none; } }
+.ball::before { left: 10%; right: -22%; bottom: -12%; height: 34%; background: radial-gradient(closest-side, rgba(5, 22, 4, .55), rgba(5, 22, 4, 0)); }
+.ball::after { border-color: rgba(255, 255, 255, .55); border-width: 1px; }
+
+/* type: calm and legible over the sky */
+.gate-copy h1 { color: #17351a; }
+.gate-copy h1 span { color: #2c4a26; opacity: .8; }
+@media (prefers-reduced-motion: reduce) { .g-turf::after, .g-light::after { animation: none; } }
+/* haze without blur filters (blur on these layers drew hairlines at their edges) */
+.g-trees { filter: none; background:
+  radial-gradient(28% 70% at 6% 100%, #3d6a2c 0 52%, rgba(61, 106, 44, 0) 66%),
+  radial-gradient(18% 60% at 19% 100%, #48773a 0 52%, rgba(72, 119, 58, 0) 66%),
+  radial-gradient(24% 85% at 33% 100%, #34602a 0 52%, rgba(52, 96, 42, 0) 66%),
+  radial-gradient(14% 55% at 46% 100%, #4c7c3a 0 52%, rgba(76, 124, 58, 0) 66%),
+  radial-gradient(26% 90% at 60% 100%, #375f28 0 52%, rgba(55, 95, 40, 0) 66%),
+  radial-gradient(16% 62% at 75% 100%, #456f33 0 52%, rgba(69, 111, 51, 0) 66%),
+  radial-gradient(24% 80% at 90% 100%, #355c27 0 52%, rgba(53, 92, 39, 0) 66%); }
+.g-trees::before { filter: none; opacity: .5; background:
+  radial-gradient(45% 100% at 20% 100%, #8aa59a 0 45%, rgba(138, 165, 154, 0) 70%),
+  radial-gradient(40% 80% at 62% 100%, #94ae9f 0 45%, rgba(148, 174, 159, 0) 70%),
+  radial-gradient(35% 70% at 92% 100%, #8ba497 0 45%, rgba(139, 164, 151, 0) 70%); }
+.g-trees, .g-trees::before, .g-sky, .g-light { background-repeat: no-repeat; }
+/* hills sit behind the tree line so their lower edge is never seen */
+.g-trees::before { display: none; }
+.g-sky::before { content: ""; position: absolute; left: -5%; right: -5%; top: 44%; bottom: 12%; opacity: .5; background-repeat: no-repeat;
+  background-image:
+    radial-gradient(45% 100% at 20% 100%, #8aa59a 0 45%, rgba(138, 165, 154, 0) 70%),
+    radial-gradient(40% 80% at 62% 100%, #94ae9f 0 45%, rgba(148, 174, 159, 0) 70%),
+    radial-gradient(35% 70% at 92% 100%, #8ba497 0 45%, rgba(139, 164, 151, 0) 70%); }
+.g-trees { background-image:
+  radial-gradient(28% 70% at 6% 100%, #3d6a2c 0 52%, rgba(61, 106, 44, 0) 66%),
+  radial-gradient(18% 60% at 19% 100%, #48773a 0 52%, rgba(72, 119, 58, 0) 66%),
+  radial-gradient(24% 85% at 33% 100%, #34602a 0 52%, rgba(52, 96, 42, 0) 66%),
+  radial-gradient(14% 55% at 46% 100%, #4c7c3a 0 52%, rgba(76, 124, 58, 0) 66%),
+  radial-gradient(26% 90% at 60% 100%, #375f28 0 52%, rgba(55, 95, 40, 0) 66%),
+  radial-gradient(16% 62% at 75% 100%, #456f33 0 52%, rgba(69, 111, 51, 0) 66%),
+  radial-gradient(24% 80% at 90% 100%, #355c27 0 52%, rgba(53, 92, 39, 0) 66%),
+  linear-gradient(180deg, rgba(58, 102, 43, 0) 70%, #3a662b 80%); }
