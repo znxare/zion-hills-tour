@@ -132,6 +132,7 @@
       <p class="eyebrow rv">Look around</p>
       <h2 class="rv">The homes you've been driving past.</h2>
       <p class="lead rv">Over 150 of them are already lived in.</p>
+      <p class="swipe-hint" data-for="cards" aria-hidden="true">Swipe for more <i>→</i></p>
       <div class="cards">
         ${homes.map((x) => `
         <article class="card">
@@ -159,7 +160,7 @@
           <figcaption><b>${esc(r.who)}</b>${r.where ? `<span>${esc(r.where)}</span>` : ""}</figcaption>
         </figure>`).join("")}
       </div>
-      <div class="tdots" aria-hidden="true">${voices.map((_, i) => `<i${i ? "" : ' class="on"'}></i>`).join("")}</div>
+      <div class="tdots" aria-hidden="true">${voices.map((_, i) => `<i${i ? "" : ' class="on"'}></i>`).join("")}<span class="swipe-hint inline" data-for="tcar">Swipe <i>→</i></span></div>
       ${on("brochure") ? `<a class="btn tbro" target="_blank" rel="noopener" href="${wa(`Hi, please send me the Zion Hills homes brochure and prices.${tail()}`)}">Send me the brochure & prices</a>` : ""}
     </section>
 
@@ -472,6 +473,52 @@
       get bar() { return BAR; }, get playing() { return musicOn && enabled && !!ctx && ctx.state === "running"; }, get enabled() { return enabled; },
     };
   })();
+
+  /* ======================= Soft guides =======================
+     Gentle, never pushy: a "swipe up" pill appears only when someone pauses, disappears the
+     moment they scroll, shows less often as they explore, and never on the last screen.
+     Side-scrolling rows glide a little and back the first time they're seen. */
+  function guides() {
+    document.body.insertAdjacentHTML("beforeend",
+      `<div class="cue" aria-hidden="true"><span class="cue-chev"><i></i><i></i></span><span class="cue-txt">Swipe up</span></div>`);
+    const cue = $(".cue");
+    let idle = null, moved = 0, lastY = scrollY;
+    const wait = () => (moved > innerHeight * 4 ? 7000 : 2600);
+    const canShow = () => !document.body.classList.contains("gating") && !document.body.classList.contains("at-after") && $("#sheet").hidden;
+    const arm = () => { clearTimeout(idle); idle = setTimeout(() => cue.classList.toggle("show", canShow()), wait()); };
+    addEventListener("scroll", () => { moved += Math.abs(scrollY - lastY); lastY = scrollY; cue.classList.remove("show"); arm(); }, { passive: true });
+    // first appearance: soon after the putt opens the page
+    const gateWatch = setInterval(() => { if (!document.body.classList.contains("gating")) { clearInterval(gateWatch); setTimeout(() => { if (scrollY < 40) cue.classList.toggle("show", canShow()); arm(); }, 1600); } }, 300);
+
+    // side-scrolling rows: a one-time glide to show there's more
+    const nudge = (el, px) => {
+      if (!el || reduce) return;
+      const io = new IntersectionObserver(([e]) => {
+        if (!e.isIntersecting) return; io.disconnect();
+        setTimeout(() => {
+          el.style.scrollSnapType = "none";                 // a small glide, not a jump to the next card
+          el.scrollBy({ left: px, behavior: "smooth" });
+          setTimeout(() => { el.scrollBy({ left: -px, behavior: "smooth" }); setTimeout(() => { el.style.scrollSnapType = ""; }, 700); }, 650);
+        }, 700);
+      }, { threshold: .7 });
+      io.observe(el);
+    };
+    nudge($(".cards"), 70); nudge($(".tcar"), 60); nudge($(".hole-nav"), 90);
+    // the hole card wiggles once: it can be swiped
+    const card = $(".hole");
+    if (card && !reduce) {
+      const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { io.disconnect(); setTimeout(() => card.classList.add("wiggle"), 900); } }, { threshold: .6 });
+      io.observe(card);
+    }
+    // labels fade once the row has been used
+    $$(".swipe-hint").forEach((h) => {
+      const row = $("." + h.dataset.for);
+      if (!row) return;
+      let touched = false;                                  // only a real swipe counts, not the nudge
+      row.addEventListener("touchstart", () => { touched = true; }, { passive: true });
+      row.addEventListener("scroll", () => { if (touched && row.scrollLeft > 120) h.classList.add("used"); }, { passive: true });
+    });
+  }
 
   function soundScenes() {
     const map = [[".city", "city"], [".dream", "dream"], ["#holes", "course"], ["#map", "course"], ["#homes", "course"], ["#voices", "course"], ["#after", "after"]];
@@ -818,5 +865,6 @@
   engine();
   soundButton();
   soundScenes();
+  guides();
   gate();
 })();
