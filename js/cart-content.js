@@ -166,7 +166,10 @@ window.CART = {
   },
 
   residents: [
-    { quote: "We came here for a two-week break, and never left!", who: "Joseph Cairns & family" },
-    { quote: "When we tire of the hustle and bustle of Koramangala, we drive out to our little retreat and just unwind.", who: "Sanjay Gangwani & family" },
+    // photos are the families' own pictures from zionhills.in/gallery; the first one is shown on the page
+    { quote: "We came here for a two-week break, and never left!", who: "Joseph Cairns & family", where: "Residents for four years",
+      photo: WIX("6c3b8b_b6343bbfd22c4073abe786b34c2adc56~mv2.png", 1100) },
+    { quote: "When we tire of the hustle and bustle of Koramangala, we drive out to our little retreat and just unwind.", who: "Sanjay Gangwani & family", where: "Owners for about a decade",
+      photo: WIX("6c3b8b_ff8bc6f74c0c43df945ae7fef5f1e290~mv2.png", 1100) },
   ],
 };

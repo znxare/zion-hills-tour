@@ -39,7 +39,7 @@
 
   function render() {
     const nt = O.nineteenth || {}, tn = O.tonight || {};
-    const quote = (C.residents || [])[1] || (C.residents || [])[0];
+    const quote = (C.residents || [])[0];
 
     $("#app").innerHTML = `
     <!-- 1. The city: film grit -->
@@ -146,12 +146,20 @@
           </div>
         </article>`).join("")}
       </div>
-      ${quote ? `<blockquote class="pull rv"><p>${esc(quote.quote)}</p><cite>${esc(quote.who)}</cite></blockquote>` : ""}
+    </section>
+
+    <!-- 4b. In their words -->
+    <section class="sec voices" id="voices">
+      ${quote && quote.photo ? `<figure class="voices-photo"><img src="${esc(quote.photo)}" alt="${esc(quote.who)} at Zion Hills" loading="lazy"></figure>` : ""}
+      <div class="voices-in">
+      <p class="eyebrow">In their words</p>
+      ${quote ? `<blockquote class="pull rv"><p>${esc(quote.quote)}</p><cite>${esc(quote.who)}${quote.where ? ` · ${esc(quote.where)}` : ""}</cite></blockquote>` : ""}
       ${on("brochure") ? `
       <aside class="brochure rv">
         <div><h3>${esc(O.brochure.title)}</h3><p>${esc(O.brochure.text)}</p></div>
         <a class="btn dark wide" target="_blank" rel="noopener" href="${wa(`Hi, please send me the Zion Hills homes brochure and prices.${tail()}`)}">Send me the brochure & prices</a>
       </aside>` : ""}
+      </div>
     </section>
 
     <!-- 5. The main ask -->
@@ -198,122 +206,175 @@
     </section>` : ""}`;
   }
 
-  /* ======================= Sound: putt effects + course ambience =======================
-     Everything is synthesised in the browser (no audio files, no licences). Browsers only
-     allow sound after a touch, so the putt itself switches it on. The music rises while
-     you scroll and settles to a soft bed when you stop. Mute is remembered. */
+  /* ======================= Sound: the putt, the course, and a score that follows the story =======================
+     Everything is synthesised in the browser (no audio files, no licences). Browsers only allow
+     sound after a touch, so the first touch on the green switches it on.
+       gate   — birdsong and a light breeze while you line up; putter, roll, cup rattle, a polite golf clap
+       city   — a low drone and distant traffic rumble (the drive you just made)
+       dream  — the score opens up: bright major chords, piano notes, birds
+       course — calm and spacious through the holes, the map and the homes
+       after  — warm, slower chords at the clubhouse
+     The music swells while you scroll and settles when you stop. Mute is remembered. */
   const Sound = (() => {
     const AC = window.AudioContext || window.webkitAudioContext;
-    let ctx = null, master, music, echo, playing = false, timers = [];
+    let ctx = null, master, music, amb, rumble, wind, echo, tone, noiseBuf;
     let enabled = store.get("zh-sound") !== "off";
-    const BED = .32, LIFT = .9;
+    let ambOn = false, musicOn = false, scene = "gate", timers = [];
+    const BED = .34, LIFT = .95;
+
+    const SCENES = {
+      city: { chords: [[55, 82.41, 110, 130.81], [49, 73.42, 98, 116.54]], len: 9, bright: 700, plucks: 0, birds: 0, rumble: .14 },
+      dream: { chords: [[130.81, 196, 246.94, 293.66, 329.63], [174.61, 220, 261.63, 329.63, 392], [146.83, 220, 261.63, 293.66, 369.99], [196, 246.94, 293.66, 369.99, 440]], len: 6, bright: 3200, plucks: 1, birds: 1, rumble: 0 },
+      course: { chords: [[130.81, 196, 246.94, 293.66, 329.63], [110, 164.81, 196, 246.94, 261.63], [87.31, 130.81, 164.81, 196, 220], [98, 146.83, 164.81, 220, 246.94]], len: 7, bright: 2400, plucks: .7, birds: 1, rumble: 0 },
+      after: { chords: [[87.31, 130.81, 174.61, 220, 261.63], [130.81, 164.81, 196, 246.94, 329.63], [110, 164.81, 220, 261.63, 329.63], [98, 146.83, 196, 246.94, 293.66]], len: 8, bright: 1800, plucks: .45, birds: .5, rumble: 0 },
+    };
+    const NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
 
     function ensure() {
       if (!AC) return null;
       if (!ctx) {
         ctx = new AC();
         master = ctx.createGain(); master.gain.value = enabled ? 1 : 0; master.connect(ctx.destination);
-        music = ctx.createGain(); music.gain.value = 0;
-        const tone = ctx.createBiquadFilter(); tone.type = "lowpass"; tone.frequency.value = 2400;
-        music.connect(tone); tone.connect(master);
-        // a soft echo gives the notes some air
+        tone = ctx.createBiquadFilter(); tone.type = "lowpass"; tone.frequency.value = 2400; tone.connect(master);
+        music = ctx.createGain(); music.gain.value = 0; music.connect(tone);
+        amb = ctx.createGain(); amb.gain.value = 1; amb.connect(master);
         echo = ctx.createDelay(1); echo.delayTime.value = .42;
-        const fb = ctx.createGain(); fb.gain.value = .33;
-        const wet = ctx.createGain(); wet.gain.value = .35;
+        const fb = ctx.createGain(); fb.gain.value = .34; const wet = ctx.createGain(); wet.gain.value = .35;
         echo.connect(fb); fb.connect(echo); echo.connect(wet); wet.connect(tone);
+        noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+        const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       }
       if (ctx.state === "suspended") ctx.resume();
       return ctx;
     }
-    function noise(dur) {
-      const b = ctx.createBuffer(1, Math.max(1, ctx.sampleRate * dur | 0), ctx.sampleRate), d = b.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-      const s = ctx.createBufferSource(); s.buffer = b; return s;
-    }
+    const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+    function noise(loop) { const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = !!loop; return s; }
     function blip(type, f0, f1, t, dur, peak, out = master) {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
       o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + .05);
     }
-    function burst(t, dur, freq, q, peak) {
-      const n = noise(dur), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    function burst(t, dur, freq, q, peak, out = master) {
+      const n = noise(), f = ctx.createBiquadFilter(), g = ctx.createGain();
       f.type = "bandpass"; f.frequency.value = freq; f.Q.value = q;
       g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-      n.connect(f); f.connect(g); g.connect(master); n.start(t);
+      n.connect(f); f.connect(g); g.connect(out); n.start(t, Math.random()); n.stop(t + dur + .02);
     }
 
-    // --- putt effects ---
-    function tick() {                       // putter face meets the ball
-      if (!ensure()) return; const t = ctx.currentTime;
-      blip("sine", 1900, 900, t, .07, .22); burst(t, .04, 3200, 2, .25);
-    }
-    function roll(dur) {                    // the ball running across the green
-      if (!ensure()) return; const t = ctx.currentTime;
-      const n = noise(dur), f = ctx.createBiquadFilter(), g = ctx.createGain();
-      f.type = "lowpass"; f.frequency.value = 520;
-      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.09, t + .08); g.gain.linearRampToValueAtTime(.0001, t + dur);
-      n.connect(f); f.connect(g); g.connect(master); n.start(t);
-    }
-    function drop() {                       // the sweetest sound in golf
-      if (!ensure()) return; const t = ctx.currentTime;
-      blip("sine", 240, 95, t, .16, .5); burst(t + .01, .05, 1400, 3, .22);
-      blip("sine", 180, 80, t + .1, .14, .3); burst(t + .11, .04, 1800, 3, .12);
-      blip("sine", 150, 70, t + .19, .1, .14);
-      if (navigator.vibrate) try { navigator.vibrate([18, 60, 12]); } catch (e) { /* no haptics */ }
-    }
-
-    // --- course ambience: slow major-7th chords, a few piano-like notes, birds ---
-    const CHORDS = [
-      [130.81, 196.00, 246.94, 293.66, 329.63],  // Cmaj9
-      [110.00, 164.81, 196.00, 246.94, 261.63],  // Am9
-      [87.31, 130.81, 164.81, 196.00, 220.00],   // Fmaj9
-      [98.00, 146.83, 164.81, 220.00, 246.94],   // G6/9
-    ];
-    const NOTES = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.5];
-    function pad(chord, t, len) {
-      chord.forEach((f, i) => {
-        [0, 4].forEach((cents) => {
-          const o = ctx.createOscillator(), g = ctx.createGain();
-          o.type = cents ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = cents + (i % 2 ? -3 : 3);
-          g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.022, t + 2.6); g.gain.linearRampToValueAtTime(.0001, t + len + 2.5);
-          o.connect(g); g.connect(music); o.start(t); o.stop(t + len + 2.6);
-        });
-      });
-    }
-    function pluck(t) {
-      const f = NOTES[Math.random() * NOTES.length | 0], o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = "sine"; o.frequency.value = f;
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + 1.8);
-      o.connect(g); g.connect(music); g.connect(echo); o.start(t); o.stop(t + 1.9);
-    }
-    function bird(t) {
-      const base = 2600 + Math.random() * 1400, n = 2 + (Math.random() * 3 | 0);
+    /* ---------- the course around you ---------- */
+    function bird(t, out = amb, vol = .02) {
+      const base = 2500 + Math.random() * 1600, n = 2 + (Math.random() * 4 | 0);
       for (let i = 0; i < n; i++) {
-        const s = t + i * (.09 + Math.random() * .05), o = ctx.createOscillator(), g = ctx.createGain();
-        o.type = "sine"; o.frequency.setValueAtTime(base, s); o.frequency.exponentialRampToValueAtTime(base * (1.3 + Math.random() * .3), s + .05);
-        o.frequency.exponentialRampToValueAtTime(base * .9, s + .09);
-        g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(.018, s + .01); g.gain.exponentialRampToValueAtTime(.0001, s + .1);
-        o.connect(g); g.connect(music); o.start(s); o.stop(s + .12);
+        const s = t + i * (.08 + Math.random() * .06), o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.setValueAtTime(base, s);
+        o.frequency.exponentialRampToValueAtTime(base * (1.25 + Math.random() * .35), s + .045);
+        o.frequency.exponentialRampToValueAtTime(base * .88, s + .09);
+        g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(vol, s + .01); g.gain.exponentialRampToValueAtTime(.0001, s + .1);
+        o.connect(g); g.connect(out); o.start(s); o.stop(s + .12);
       }
     }
-    function loop(fn, min, max) {
-      const run = () => { if (!playing) return; fn(ctx.currentTime + .05); timers.push(setTimeout(run, (min + Math.random() * (max - min)) * 1000)); };
-      timers.push(setTimeout(run, min * 500));
+    function startAmbience() {                 // birds and a breeze, from the first touch on the green
+      if (ambOn || !ensure()) return; ambOn = true;
+      const n = noise(true), f = ctx.createBiquadFilter(), lfo = ctx.createOscillator(), depth = ctx.createGain();
+      wind = ctx.createGain(); wind.gain.value = 0;
+      f.type = "bandpass"; f.frequency.value = 520; f.Q.value = .6;
+      lfo.frequency.value = .09; depth.gain.value = 260; lfo.connect(depth); depth.connect(f.frequency); lfo.start();
+      n.connect(f); f.connect(wind); wind.connect(amb); n.start();
+      wind.gain.setTargetAtTime(.05, ctx.currentTime, 1.2);
+      const chirp = () => { if (!ambOn) return; if (scene !== "city") bird(ctx.currentTime + .05, amb, scene === "gate" ? .024 : .012); later(chirp, 2200 + Math.random() * 5200); };
+      later(chirp, 600);
+      // distant traffic for the city scene (silent until then)
+      const r = noise(true), rf = ctx.createBiquadFilter();
+      rumble = ctx.createGain(); rumble.gain.value = 0;
+      rf.type = "lowpass"; rf.frequency.value = 240; r.connect(rf); rf.connect(rumble); rumble.connect(amb); r.start();
+    }
+    function horn(t) {                         // a far-off car horn, muffled by distance
+      [392, 466].forEach((f, i) => {
+        const o = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+        o.type = "square"; o.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = 900;
+        const s = t + i * .02, len = .22 + Math.random() * .25;
+        g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(.012, s + .03); g.gain.exponentialRampToValueAtTime(.0001, s + len);
+        o.connect(lp); lp.connect(g); g.connect(amb); o.start(s); o.stop(s + len + .05);
+      });
+    }
+
+    /* ---------- the putt ---------- */
+    function tick() {                          // the putter face meets the ball: a soft, solid "tock"
+      if (!ensure()) return; const t = ctx.currentTime;
+      blip("sine", 1350, 760, t, .09, .26); blip("triangle", 2600, 1800, t, .03, .1);
+      blip("sine", 320, 180, t, .06, .14); burst(t, .025, 4200, 1.5, .18);
+    }
+    function roll(dur) {                       // the ball on bent grass: a hush that fades as it slows
+      if (!ensure()) return; const t = ctx.currentTime;
+      const n = noise(true), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      f.type = "lowpass"; f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(260, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.08, t + .06); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      n.connect(f); f.connect(g); g.connect(master); n.start(t, Math.random()); n.stop(t + dur + .05);
+    }
+    function drop() {                          // the sweetest sound in golf: in, rattle, settle
+      if (!ensure()) return; const t = ctx.currentTime;
+      blip("sine", 260, 96, t, .17, .55); burst(t + .005, .05, 1500, 3, .26);
+      [[.085, .32], [.15, .18], [.2, .1], [.235, .05]].forEach(([d, v]) => { blip("sine", 190 - d * 300, 80, t + d, .09, v); burst(t + d, .03, 1900, 4, v * .5); });
+      if (navigator.vibrate) try { navigator.vibrate([18, 60, 12]); } catch (e) { /* no haptics */ }
+    }
+    function applause() {                      // a small group's polite golf clap
+      if (!ensure()) return; const t0 = ctx.currentTime + .45, len = 2.6;
+      for (let i = 0; i < 46; i++) {
+        const k = Math.pow(Math.random(), 1.6), s = t0 + k * len;
+        burst(s, .03 + Math.random() * .02, 1100 + Math.random() * 1500, 1.2, .07 * (1 - k * .85));
+      }
+    }
+
+    /* ---------- the score ---------- */
+    function pad(chord, t, len, bright) {
+      chord.forEach((f, i) => {
+        [0, 5].forEach((cents) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = cents ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = cents + (i % 2 ? -3 : 3);
+          g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.021, t + 2.4); g.gain.linearRampToValueAtTime(.0001, t + len + 2.6);
+          o.connect(g); g.connect(music); o.start(t); o.stop(t + len + 2.7);
+        });
+      });
+      tone.frequency.setTargetAtTime(bright, t, 1.5);
+    }
+    function pluck(t) {
+      const f = NOTES[Math.random() * NOTES.length | 0], o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f * 2;
+      const g2 = ctx.createGain(); g2.gain.value = .25;
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + 2);
+      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(music); g.connect(echo);
+      o.start(t); o2.start(t); o.stop(t + 2.1); o2.stop(t + 2.1);
+    }
+    let step = 0, chordTimer = null;
+    function nextChord() {
+      if (!musicOn) return;
+      const S = SCENES[scene] || SCENES.course;
+      pad(S.chords[step++ % S.chords.length], ctx.currentTime + .05, S.len, S.bright);
+      clearTimeout(chordTimer); chordTimer = setTimeout(nextChord, S.len * 1000);
     }
     function startMusic() {
-      if (playing || !ensure()) return;
-      playing = true;
-      let k = 0;
-      const chord = () => { if (!playing) return; pad(CHORDS[k++ % CHORDS.length], ctx.currentTime + .05, 7); timers.push(setTimeout(chord, 7000)); };
-      chord();
-      loop(pluck, 1.4, 3.2);
-      loop(bird, 5, 12);
+      if (musicOn || !ensure()) return; musicOn = true;
+      startAmbience();
+      nextChord();
+      const plucks = () => { if (!musicOn) return; const S = SCENES[scene] || SCENES.course; if (Math.random() < S.plucks) pluck(ctx.currentTime + .05); later(plucks, 1400 + Math.random() * 1800); };
+      later(plucks, 1500);
+      const horns = () => { if (!musicOn) return; if (scene === "city") horn(ctx.currentTime + .05); later(horns, 4000 + Math.random() * 6000); };
+      later(horns, 2500);
       music.gain.setTargetAtTime(BED, ctx.currentTime, 1.5);
     }
+    function setScene(name) {
+      if (!SCENES[name] || name === scene) return;
+      scene = name;
+      if (!ctx) return;
+      const S = SCENES[name];
+      if (rumble) rumble.gain.setTargetAtTime(S.rumble, ctx.currentTime, 1);
+      if (wind) wind.gain.setTargetAtTime(name === "city" ? 0 : .035, ctx.currentTime, 1.2);
+      if (musicOn) { step = 0; nextChord(); }  // the new mood arrives now, not at the next bar
+    }
     let settle = null;
-    function scrolling() {                  // music swells while you scroll
-      if (!playing) return;
+    function scrolling() {
+      if (!musicOn) return;
       music.gain.setTargetAtTime(LIFT, ctx.currentTime, .35);
       clearTimeout(settle);
       settle = setTimeout(() => music.gain.setTargetAtTime(BED, ctx.currentTime, 1.6), 900);
@@ -323,10 +384,15 @@
       if (ensure()) master.gain.setTargetAtTime(v ? 1 : 0, ctx.currentTime, .15);
       if (v) startMusic();
     }
-    // pause everything when the phone is locked or the tab is hidden
     document.addEventListener("visibilitychange", () => { if (!ctx) return; document.hidden ? ctx.suspend() : ctx.resume(); });
-    return { ensure, tick, roll, drop, startMusic, scrolling, setEnabled, get enabled() { return enabled; } };
+    return { ensure, startAmbience, tick, roll, drop, applause, startMusic, setScene, scrolling, setEnabled, get enabled() { return enabled; } };
   })();
+
+  function soundScenes() {
+    const map = [[".city", "city"], [".dream", "dream"], ["#holes", "course"], ["#map", "course"], ["#homes", "course"], ["#voices", "course"], ["#after", "after"]];
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) Sound.setScene(e.target.dataset.scene); }), { rootMargin: "-50% 0px -50% 0px" });
+    map.forEach(([sel, name]) => { const el = $(sel); if (el) { el.dataset.scene = name; io.observe(el); } });
+  }
 
   function soundButton() {
     document.body.insertAdjacentHTML("beforeend",
@@ -386,7 +452,7 @@
       Sound.tick(); Sound.roll(dur / 1000);
       // a putt slows as it nears the hole: ease-out with a long tail
       animate(dur, (e) => setBall(sx + (tx - sx) * e + Math.sin(e * Math.PI) * brk, sy + (ty - sy) * e), () => {
-        Sound.drop(); g.classList.add("sunk");
+        Sound.drop(); Sound.applause(); g.classList.add("sunk");
         animate(240, (e) => setBall(tx, ty + e * 3, 1 - e * .4, 1 - e), () => {
           msg.textContent = "In the hole.";
           setTimeout(() => close(true), 700);
@@ -396,7 +462,7 @@
 
     function onDown(e) {
       if (busy) return;
-      Sound.ensure();                                         // this touch unlocks sound on phones
+      Sound.ensure(); if (Sound.enabled) Sound.startAmbience(); // this touch unlocks sound: birds and a breeze
       drag = { sx: e.clientX, sy: e.clientY, moved: 0, dy: 0 };
       ball.classList.add("moving");
       try { g.setPointerCapture(e.pointerId); } catch (err) { /* not supported */ }
@@ -416,7 +482,7 @@
     g.addEventListener("pointermove", onMove);
     g.addEventListener("pointerup", onUp);
     g.addEventListener("pointercancel", () => { if (!busy) { drag = null; setBall(0, 0); ball.classList.remove("moving"); } });
-    ball.addEventListener("click", (e) => { if (e.detail === 0) { Sound.ensure(); holeIt("Nice touch…"); } }); // keyboard Enter/Space
+    ball.addEventListener("click", (e) => { if (e.detail === 0) { Sound.ensure(); if (Sound.enabled) Sound.startAmbience(); holeIt("Nice touch…"); } }); // keyboard Enter/Space
     setTimeout(() => ball.focus({ preventScroll: true }), 300);
 
     function close(holed, instant, jump) {
@@ -609,5 +675,6 @@
   chrome();
   engine();
   soundButton();
+  soundScenes();
   gate();
 })();

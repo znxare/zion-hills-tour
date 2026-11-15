@@ -592,3 +592,43 @@ body.in-holes .dock { opacity: 0; transform: translateY(20px); pointer-events: n
   .lived p { font-size: 18px; }
   #holes h2 { font-size: 34px; }
 }
+
+/* ===================== Every section is one full screen ===================== */
+.mapsec, #homes, .voices, .nineteenth { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; scroll-snap-align: start; }
+.mapsec > *, #homes > *, .voices > * { width: 100%; }
+#homes { padding: calc(56px + env(safe-area-inset-top)) var(--g) calc(96px + env(safe-area-inset-bottom)); }
+#homes .card-img { height: 170px; }
+#homes .lead { margin-bottom: 18px; }
+.mapsec { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+.nineteenth { margin-top: 0; border-radius: 0; }
+
+/* in their words: a resident's line over the verandah view, then the brochure */
+.voices { position: relative; overflow: hidden; color: #fff; padding: calc(56px + env(safe-area-inset-top)) var(--g) calc(96px + env(safe-area-inset-bottom)); background: var(--deep); }
+.voices-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.voices-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12, 30, 10, .35) 0%, rgba(12, 30, 10, .55) 40%, rgba(12, 30, 10, .92) 100%); }
+.voices-in { position: relative; max-width: 760px; margin: 0 auto; }
+.voices .pull { background: none; padding: 54px 0 0; margin: 0; }
+.voices .pull::before { left: -4px; top: -6px; font-size: 110px; color: var(--flame); }
+.voices .pull p { color: #fff; font-size: clamp(32px, 9vw, 54px); line-height: 1.08; text-shadow: 0 4px 30px rgba(0, 0, 0, .35); }
+.voices .pull cite { color: rgba(255, 255, 255, .8); margin-top: 16px; }
+.voices .brochure { margin-top: 32px; background: rgba(255, 255, 255, .12); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
+.voices .brochure .btn.dark { background: var(--flame); color: #fff; }
+@media (max-width: 600px) and (max-height: 740px) { #homes .card-img { height: 140px; } #homes h2 { font-size: 40px; } }
+
+/* the resident family, then their words */
+.voices { justify-content: flex-start; padding: 0 0 calc(96px + env(safe-area-inset-bottom)); background: var(--deep); }
+.voices-photo { position: relative; inset: auto; margin: 0; height: 46vh; min-height: 260px; width: 100%; }
+.voices-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; display: block; }
+.voices-photo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 45%; background: linear-gradient(to top, var(--deep), rgba(23, 53, 26, 0)); }
+.voices-in { padding: 0 var(--g); margin-top: -34px; z-index: 1; }
+.voices .eyebrow { color: var(--green-hi); opacity: 1; margin-bottom: 6px; }
+.voices .pull { padding-top: 40px; }
+.voices .pull::before { top: -18px; }
+.voices .pull p { font-size: clamp(30px, 8.6vw, 54px); }
+.voices .brochure { margin-top: 24px; }
+@media (max-height: 740px) { .voices-photo { height: 38vh; } .voices .pull p { font-size: 28px; } }
+.voices-photo { height: 38vh; }
+.voices .brochure { padding: 18px; gap: 12px; }
+.voices .brochure h3 { font-size: 25px; }
+.voices .brochure p { font-size: 15px; }
+@media (max-height: 740px) { .voices-photo { height: 32vh; } .voices .brochure p { display: none; } }
