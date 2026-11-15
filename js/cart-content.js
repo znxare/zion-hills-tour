@@ -53,21 +53,15 @@ window.CART = {
     hint: "Flick the ball towards the hole",
   },
   city: {
-    image: IMG.city,
-    time: "Monday · 08:47",
+    image: IMG.city,          // real Bangalore traffic photo (CC0)
+    // the time shown is the visitor's real day and time, updated live
     words: ["You drove", "an hour", "through traffic", "to play here."],
   },
   dream: {
     image: IMG.flameTree,
-    words: ["They", "walked."],
+    words: ["This could be", "your home course."],
     line: "Zion Hills Golf County · 250 acres · 18 holes · every home faces the course",
   },
-
-  /* Birdies: a playful reward counter (like points) — earned by taking part,
-     never required for any offer. Set on: false to hide it. */
-  birdies: { on: true },
-  // The gauge in the top-right counts down to the 19th hole as you scroll
-  gaugeYards: 420,
 
   hero: {
     image: IMG.flameTree,
@@ -96,8 +90,8 @@ window.CART = {
     { text: "If you lived here, you'd have every evening of the year to master the longest par 3 in India." },
     { label: "What's next", text: "Phase II homes are being designed now, with age-in-place features — a home for every stage of your life. Expressions of interest are open." },
     { text: "If you lived here, a view like this would be what you wake up to." },
-    { label: "One more hole", text: "Here's a thought: what if you didn't drive back tonight?", action: "tonight" },
-    { label: "The 19th hole", text: "Your round ends here. For the people who live here, it never really does. Come and hear their story over a drink — it's on us.", action: "nineteenth" },
+    { label: "One more hole", text: "In an hour you'll be back in traffic." },
+    { label: "The 19th hole", text: "…or not. What if you didn't have to drive back? Your 19th hole is on us.", action: "nineteenth" },
   ],
 
   /* Hole guide — par and playing tips from zionhills.in/golf.

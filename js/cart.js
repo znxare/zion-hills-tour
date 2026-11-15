@@ -22,32 +22,12 @@
     get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } },
   };
-  const flagSvg = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M5 21V3h1.6l.4 1H19l-3 5 3 5H7v7H5z"/></svg>`;
-
-  /* ======================= Birdies ======================= */
-  const today = new Date().toDateString();
-  let earned = {};
-  try { const s = JSON.parse(store.get("zh-birdies") || "{}"); if (s.day === today) earned = s.keys || {}; } catch (e) { /* ignore */ }
-  const birdieCount = () => Object.keys(earned).length;
-  let toastTimer;
-  function toast(html) {
-    const t = $(".toast"); t.innerHTML = html; t.classList.add("show");
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
-  }
-  function award(key, label) {
-    if (!(C.birdies && C.birdies.on) || earned[key]) return;
-    earned[key] = 1;
-    store.set("zh-birdies", JSON.stringify({ day: today, keys: earned }));
-    const b = $(".birdies"); $("b", b).textContent = birdieCount();
-    b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
-    toast(`<b>+1 birdie</b> · ${esc(label)}`);
-    updateRound();
-  }
-  function updateRound() {
-    const el = $(".round-done"); if (!el) return;
-    const n = birdieCount();
-    el.hidden = !n;
-    el.innerHTML = `${flagSvg} Round complete · ${n} birdie${n === 1 ? "" : "s"} today`;
+  // The visitor's real day and time, e.g. "Saturday · 10:42"
+  function nowText() {
+    const d = new Date();
+    const day = d.toLocaleDateString("en-IN", { weekday: "long" });
+    const time = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false });
+    return `${day} · ${time}`;
   }
 
   /* ======================= Render ======================= */
@@ -70,7 +50,7 @@
       <div class="stage">
         <img class="city-img" src="${esc(C.city.image)}" alt="" fetchpriority="high">
         <div class="scan"></div><div class="vignette"></div><div class="grain"></div><span class="strip"></span>
-        <p class="mono timecode"><i></i>${esc(C.city.time)}</p>
+        <p class="mono timecode"><i></i><span class="live-time">${esc(nowText())}</span></p>
         <a class="mono linkish skip-intro" href="#holes">Skip intro ↓</a>
         <h2 class="city-words" aria-label="${esc(C.city.words.join(" "))}">${C.city.words.map((w) => `<span aria-hidden="true">${esc(w)}</span>`).join("")}</h2>
       </div>
@@ -93,7 +73,7 @@
 
     <!-- 3. 18 holes, one story -->
     <section class="sec" id="holes">
-      <p class="eyebrow rv">Your round${cart ? ` · cart ${esc(cart)}` : ""}</p>
+      <p class="eyebrow rv">Your round</p>
       <h2 class="rv">18 holes.<br>One story.</h2>
       <p class="lead rv">A playing tip for every hole — and a line about life for the people who live beside it.</p>
       <div class="hole-nav" role="tablist" aria-label="Choose a hole">
@@ -106,7 +86,7 @@
       </div>
       <p class="progress-note" aria-hidden="true"></p>
       ${Z.brand.mapUrl ? `
-      <a class="mapcard" data-birdie="map" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">
+      <a class="mapcard" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">
         <span class="mapcard-pin" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></span>
         <span><b>Find your way around Zion Hills</b><small>Live map: clubhouse, restaurant, practice area, courts and directions.</small></span>
         <span class="mapcard-go" aria-hidden="true">↗</span>
@@ -128,7 +108,7 @@
             <p class="size">${esc(x.size)}</p>
             <p class="price">${esc(x.price)}</p>
             <button class="btn dark sm" data-see="${esc(x.name)}">See it after my round</button>
-            <a class="btn line sm" data-birdie="plan" target="_blank" rel="noopener" href="${wa(`Hi, I'm on the course at Zion Hills. Please send me prices and the floor plan for the ${x.name}.${tail()}`)}">Prices & plan on WhatsApp</a>
+            <a class="btn line sm" target="_blank" rel="noopener" href="${wa(`Hi, I'm on the course at Zion Hills. Please send me prices and the floor plan for the ${x.name}.${tail()}`)}">Prices & plan on WhatsApp</a>
           </div>
         </article>`).join("")}
       </div>
@@ -136,14 +116,13 @@
       ${on("brochure") ? `
       <aside class="brochure rv">
         <div><h3>${esc(O.brochure.title)}</h3><p>${esc(O.brochure.text)}</p></div>
-        <a class="btn dark wide" data-birdie="brochure" target="_blank" rel="noopener" href="${wa(`Hi, please send me the Zion Hills homes brochure and prices.${tail()}`)}">Send me the brochure & prices</a>
+        <a class="btn dark wide" target="_blank" rel="noopener" href="${wa(`Hi, please send me the Zion Hills homes brochure and prices.${tail()}`)}">Send me the brochure & prices</a>
       </aside>` : ""}
     </section>
 
     <!-- 5. The main ask -->
     <section class="nineteenth" id="after">
       <div class="caustics" aria-hidden="true"></div>
-      <p class="round-done" hidden></p>
       <p class="eyebrow">The 19th hole</p>
       <h2>${on("nineteenth") ? esc(nt.title) : "See a home before you drive back."}</h2>
       <p class="lead">${on("nineteenth") ? esc(nt.text) : "Tell us when you finish. We'll meet you at the clubhouse and walk you through a home, at your pace."}</p>
@@ -159,7 +138,7 @@
         <label>Phone<input name="phone" type="tel" inputmode="tel" autocomplete="tel" required></label>
         <p class="err" role="alert" hidden>Please add your name and phone number.</p>
         <button class="btn light wide" type="submit">${on("nineteenth") ? "Save my drink — send on WhatsApp" : "Send on WhatsApp"}</button>
-        <p class="small">${cart ? `We'll know you're on cart ${esc(cart)}. ` : ""}Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.${Z.brand.mapUrl ? ` <a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Find the clubhouse on the map ↗</a>` : ""}</p>
+        <p class="small">Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.${Z.brand.mapUrl ? ` <a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Find the clubhouse on the map ↗</a>` : ""}</p>
         ${on("nineteenth") && nt.terms ? `<p class="small fine">${esc(nt.terms)}</p>` : ""}
       </form>
     </section>
@@ -175,7 +154,7 @@
         <p class="lead">${esc(tn.text)}</p>
         ${tn.discount ? `<p class="prize">${esc(tn.discount)}</p>` : ""}
         <div class="btns stack">
-          <a class="btn light wide" data-birdie="tonight" target="_blank" rel="noopener" href="${wa(`Hi, I'm playing at Zion Hills today. Is a golf-side villa available tonight?${tail()}`)}">Is a villa free tonight? Ask on WhatsApp</a>
+          <a class="btn light wide" target="_blank" rel="noopener" href="${wa(`Hi, I'm playing at Zion Hills today. Is a golf-side villa available tonight?${tail()}`)}">Is a villa free tonight? Ask on WhatsApp</a>
           <a class="btn glass wide" href="${esc(Z.brand.stayUrl)}" target="_blank" rel="noopener">Book a stay online</a>
         </div>
       </div>
@@ -190,14 +169,14 @@
         <a href="tel:${esc(Z.contact.phone)}">Call</a>
         <a href="mailto:${esc(Z.contact.email)}">Email</a>
       </p>
-      <p class="small">${esc(Z.brand.full)} · ${esc(Z.contact.address)}. Plans and sizes are indicative. The city scene is a stock image.</p>
+      <p class="small">${esc(Z.brand.full)} · ${esc(Z.contact.address)}. Plans and sizes are indicative. Bangalore traffic photo: Divya Chinnasamy, CC0, via Wikimedia Commons.</p>
     </footer>`;
   }
 
   /* ======================= 0. Gate: sink the putt ======================= */
   function gate() {
     const g = $("#gate"), ball = $("#ball"), cup = $(".cup"), msg = $(".gate-msg");
-    $(".gate-label").textContent = C.gate.label + (cart ? ` · Cart ${cart}` : "");
+    $(".gate-label").textContent = C.gate.label;
     $("#gate-title em").textContent = C.gate.title;
     $("#gate-title span").textContent = C.gate.sub;
     $(".gate-hint").textContent = C.gate.hint;
@@ -228,8 +207,7 @@
       animate(reduce ? 1 : 950, (e) => setBall(dx * e + Math.sin(e * Math.PI) * 18, dy * e), () => {
         animate(260, (e) => setBall(dx, dy + e * 4, 1 - e * .45, 1 - e), () => {
           msg.textContent = "In the hole!";
-          award("putt", "Holed the putt");
-          setTimeout(() => close(true), 350);
+          setTimeout(() => close(true), 450);
         });
       });
     }
@@ -301,7 +279,7 @@
   function actionHtml(kind) {
     if (kind === "contest" && on("contest")) {
       const ct = O.contest;
-      return `<a class="btn dark wide sm" data-birdie="contest" target="_blank" rel="noopener" href="${wa(`Here's my Shot of the Day from hole ${ct.hole} at Zion Hills! (photo attached)\nName: `)}">Send my photo on WhatsApp</a>
+      return `<a class="btn dark wide sm" target="_blank" rel="noopener" href="${wa(`Here's my Shot of the Day from hole ${ct.hole} at Zion Hills! (photo attached)\nName: `)}">Send my photo on WhatsApp</a>
         <p class="tiny">Tap, then attach your photo in WhatsApp. ${esc(ct.terms)}</p>`;
     }
     if (kind === "tonight" && on("tonight")) return `<a class="btn line wide sm" href="#tonight">Stay the night →</a>`;
@@ -311,9 +289,8 @@
 
   function holes() {
     const card = $(".hole"), btns = $$("[data-hole]"), note = $(".progress-note");
-    const seen = new Set();
     let cur = Math.min(17, Math.max(0, +(store.get("zh-hole") || 0)));
-    function show(i, user) {
+    function show(i) {
       cur = (i + 18) % 18;
       const x = C.holes[cur], s = (C.story || [])[cur] || {};
       card.innerHTML = `
@@ -332,21 +309,15 @@
       btns.forEach((b, k) => { b.classList.toggle("on", k === cur); b.classList.toggle("seen", k < cur); b.setAttribute("aria-selected", k === cur); });
       const active = btns[cur], nav = $(".hole-nav");
       nav.scrollTo({ left: active.offsetLeft - nav.clientWidth / 2 + active.offsetWidth / 2, behavior: "smooth" });
-      note.textContent = cur < 8 ? "Front nine · a day in the life" : cur === 8 ? "The turn" : cur < 17 ? "Back nine · becoming a resident" : "The end of your round — and the start of theirs";
+      note.textContent = cur < 8 ? "Front nine · a day in the life" : cur === 8 ? "The turn" : cur < 17 ? "Back nine · becoming a resident" : "The end of your round";
       store.set("zh-hole", cur);
-      if (user) {
-        seen.add(cur);
-        if (seen.size >= 3) award("explorer", "Read three holes");
-        if (cur >= 9) award("back9", "Reached the back nine");
-        if (cur === 17) award("eighteen", "Played through to 18");
-      }
     }
-    btns.forEach((b) => b.addEventListener("click", () => show(+b.dataset.hole, true)));
+    btns.forEach((b) => b.addEventListener("click", () => show(+b.dataset.hole)));
     $$("[data-step]").forEach((b) => b.addEventListener("click", () => {
-      show(cur + +b.dataset.step, true);
+      show(cur + +b.dataset.step);
       card.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }));
-    show(cur, false);
+    show(cur);
   }
 
   /* ======================= Scroll engine ======================= */
@@ -354,8 +325,6 @@
   function engine() {
     const city = $(".city"), dream = $(".dream"), after = $("#after");
     const cw = $$(".city-words span"), dw = $$(".dream-words span"), line = $(".dream-line");
-    const gaugeB = $(".gauge b"), gaugeI = $(".gauge-bar i");
-    const total = C.gaugeYards || 420;
     let ticking = false;
     const prog = (el) => { const r = el.getBoundingClientRect(); return clamp(-r.top / (r.height - innerHeight)); };
 
@@ -369,11 +338,6 @@
       dw.forEach((w, i) => w.classList.toggle("on", pd > (i === 0 ? .14 : .32)));
       line.classList.toggle("on", pd > .5);
 
-      const end = after.getBoundingClientRect().top + scrollY - innerHeight * .3;
-      const left = clamp(1 - scrollY / Math.max(1, end));
-      gaugeB.textContent = Math.round(total * left);
-      gaugeI.style.transform = `scaleX(${(1 - left).toFixed(3)})`;
-
       const under = document.elementFromPoint(innerWidth / 2, 30);
       document.body.classList.toggle("on-dark", !!(under && under.closest(".city, .nineteenth, .tonight")) || (under && under.closest(".dream") && pd < .1));
     }
@@ -384,19 +348,16 @@
     addEventListener("pageshow", update);
     update();
 
-    // gentle reveals + section-based birdies
+    // gentle reveals
     const io = new IntersectionObserver((es) => es.forEach((e) => {
       if (!e.isIntersecting) return;
       e.target.classList.add("in"); io.unobserve(e.target);
     }), { threshold: .12 });
     $$(".rv").forEach((el) => io.observe(el));
-    const seenIO = new IntersectionObserver((es) => es.forEach((e) => {
-      if (!e.isIntersecting) return;
-      if (e.target.id === "homes") award("homes", "Looked around the homes");
-      if (e.target.id === "after") updateRound();
-      seenIO.unobserve(e.target);
-    }), { threshold: .3 });
-    seenIO.observe($("#homes")); seenIO.observe(after);
+
+    // keep the city clock showing the real time
+    const clock = $(".live-time");
+    setInterval(() => { clock.textContent = nowText(); }, 20000);
     const atIO = new IntersectionObserver(([e]) => document.body.classList.toggle("at-after", e.isIntersecting), { threshold: .15 });
     atIO.observe(after);
   }
@@ -410,8 +371,6 @@
   }
 
   function chrome() {
-    if (C.birdies && C.birdies.on) { const b = $(".birdies"); b.hidden = false; $("b", b).textContent = birdieCount(); }
-    if (cart) { const b = $(".cart-badge"); b.textContent = `Cart ${cart}`; b.hidden = false; }
     $("#dock-wa").href = wa(`Hi, I'm on the course at Zion Hills and would like to know about the homes.${tail()}`);
     if (!on("nineteenth")) $(".dock-main").textContent = "See a home after your round";
 
@@ -431,13 +390,6 @@
     btn.addEventListener("click", () => open(true));
     sheet.addEventListener("click", (e) => { if (e.target.closest("[data-close], .sheet-links a")) open(false); });
     addEventListener("keydown", (e) => { if (e.key === "Escape" && !sheet.hidden) { open(false); btn.focus(); } });
-
-    // birdies for taking part
-    document.addEventListener("click", (e) => {
-      const a = e.target.closest("[data-birdie]"); if (!a) return;
-      const labels = { map: "Opened the estate map", plan: "Asked for a floor plan", brochure: "Took Zion Hills home", contest: "Entered Shot of the day", tonight: "Asked about tonight" };
-      award(a.dataset.birdie, labels[a.dataset.birdie] || "Nice shot");
-    });
 
     const form = $("#after-form");
     form.addEventListener("submit", (e) => {
@@ -472,5 +424,4 @@
   chrome();
   engine();
   gate();
-  updateRound();
 })();

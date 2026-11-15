@@ -40,8 +40,9 @@ const IMG = {
   condosBuilt: WIX("6c3b8b_21e020c3f7c14aa3ba560212f21d2a90~mv2.png"),
   phase2:      WIX("6c3b8b_3f9c2264dff34c71a6611657826cea74~mv2.png"),
   birds:       WIX("6c3b8b_8d6d0b7ed6db46759e9dd057c6ebb146~mv2.png"),
-  // Stock photo for "the city" chapter. TODO swap for a Bangalore traffic shot you own.
-  city:        "https://images.unsplash.com/photo-1519501025264-65ba15a82390?" + (PHONE ? "w=900&h=1600&fit=crop&q=70" : "w=1600&q=70"),
+  // Real Bangalore traffic — "TRAFFIC VIEW IN BANGALORE" by Divya Chinnasamy, CC0 (public domain),
+  // https://commons.wikimedia.org/wiki/File:TRAFFIC_VIEW_IN_BANGALORE.jpg — saved locally in /images
+  city:        "images/bangalore-traffic.jpg",
 };
 
 window.ZION = {
