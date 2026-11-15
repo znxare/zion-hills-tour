@@ -130,21 +130,20 @@
       <p class="eyebrow rv">Look around</p>
       <h2 class="rv">The homes you've been driving past.</h2>
       <p class="lead rv">Over 150 of them are already lived in.</p>
-      <p class="swipe-hint" data-for="cards" aria-hidden="true">Swipe for more <i>→</i></p>
-      <div class="cards">
-        ${homes.map((x) => `
-        <article class="card">
-          <div class="card-img"><img src="${esc(x.image)}" alt="${esc(x.name)}" loading="lazy"><span class="tag">${esc(x.status)}</span></div>
+      <div class="cards focus">
+        ${homes.map((x, i) => `
+        <article class="card" aria-label="${esc(x.name)}, ${i + 1} of ${homes.length}">
+          <div class="card-img"><img src="${esc(x.image)}" alt="${esc(x.name)}" loading="lazy"><span class="tag">${esc(x.status)}</span><span class="count mono">${i + 1} / ${homes.length}</span></div>
           <div class="card-body">
             <h3>${esc(x.name)}</h3>
-            <p class="muted">${esc(x.beds)}</p>
-            <p class="size">${esc(x.size)}</p>
+            <p class="facts">${esc(x.beds)} · ${esc(x.size)}</p>
             <p class="price">${esc(x.price)}</p>
-            <button class="btn dark sm" data-see="${esc(x.name)}">See it after my round</button>
-            <a class="btn line sm" target="_blank" rel="noopener" href="${wa(`Hi, I'm on the course at Zion Hills. Please send me prices and the floor plan for the ${x.name}.${tail()}`)}">Prices & plan on WhatsApp</a>
+            <a class="btn wa-home" target="_blank" rel="noopener" href="${wa(`Hi, I'm on the course at Zion Hills. Please send me prices and the floor plan for the ${x.name}.${tail()}`)}">Prices & floor plan on WhatsApp</a>
+            <button class="linkish see" data-see="${esc(x.name)}">See it after my round →</button>
           </div>
         </article>`).join("")}
       </div>
+      <div class="hdots" aria-hidden="true">${homes.map((_, i) => `<i${i ? "" : ' class="on"'}></i>`).join("")}<span class="swipe-hint inline dark" data-for="cards">Swipe <i>→</i></span></div>
     </section>
 
     <!-- 4b. In their words -->
@@ -799,7 +798,6 @@
       fig.classList.add("fly");
       const lived = $(".lived", card); if (lived) lived.classList.add("write");
       if (reduce) return;
-      Sound.flight(1.5); setTimeout(() => Sound.land(), 1450);
       if (lived) setTimeout(() => Sound.type($$("p span", lived).length, .045), 700);
       const yd = $(".yds", card), total = C.holes[cur].yds;
       if (yd && total) {
@@ -817,7 +815,6 @@
       card.innerHTML = `
         <figure class="hole-photo">
           <img src="${photo(cur)}" alt="Aerial view of hole ${cur + 1}" width="1280" height="600">
-          ${tracer(cur)}
           <figcaption>
             <span class="hole-no"><small>Hole</small>${cur + 1}</span>
             <span class="hole-meta"><b>Par ${x.par}</b>${x.yds ? `<span class="yds">${x.yds} yards</span>` : ""}${x.hcp ? `<span>Handicap ${x.hcp}</span>` : ""}</span>
@@ -994,10 +991,11 @@
     if (cardsRow) {
       let touched = false, idx = 0;
       cardsRow.addEventListener("touchstart", () => { touched = true; }, { passive: true });
+      const hdots = $$(".hdots i");
       cardsRow.addEventListener("scroll", () => {
-        const first = cardsRow.firstElementChild; if (!first || !touched) return;
-        const step = first.getBoundingClientRect().width + 14, i = Math.round(cardsRow.scrollLeft / step);
-        if (i !== idx) { idx = i; Sound.slide(i); }
+        const first = cardsRow.firstElementChild; if (!first) return;
+        const step = first.getBoundingClientRect().width + parseFloat(getComputedStyle(cardsRow).columnGap || 0), i = Math.round(cardsRow.scrollLeft / step);
+        if (i !== idx) { idx = i; hdots.forEach((d, k) => d.classList.toggle("on", k === i)); if (touched) Sound.slide(i); }
       }, { passive: true });
     }
     const atIO = new IntersectionObserver(([e]) => document.body.classList.toggle("at-after", e.isIntersecting), { threshold: .15 });

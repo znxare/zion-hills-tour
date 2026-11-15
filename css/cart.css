@@ -927,3 +927,30 @@ body.at-end .dock { opacity: 0; transform: translateY(20px); pointer-events: non
   .hole-photo.fly img, .hole-photo.fly .tracer path, .hole-photo.fly .tr-pin, .hole-photo.fly .tr-ring { animation: none; }
   .tracer path { stroke-dashoffset: 0; } .tr-pin { opacity: 1; } .lived p span { opacity: 1; transition: none; }
 }
+
+/* ===================== Look around: one home at a time ===================== */
+#homes .cards.focus { grid-auto-columns: 100%; gap: 12px; }
+#homes .cards.focus .card { border-radius: 28px; box-shadow: 0 24px 50px rgba(16, 48, 30, .14); }
+#homes .cards.focus .card-img { height: 34vh; min-height: 210px; }
+#homes .cards.focus .count { position: absolute; top: 14px; right: 14px; padding: 6px 10px; border-radius: 999px; background: rgba(255, 255, 255, .9); color: var(--deep); font-size: 10.5px; }
+#homes .cards.focus .card-body { padding: 18px 20px 16px; gap: 6px; }
+#homes .cards.focus h3 { font-size: 36px; }
+#homes .facts { margin: 0; font: 500 15px/1.35 var(--sans); color: var(--ink-2); }
+#homes .cards.focus .price { margin: 2px 0 10px; }
+.wa-home { min-height: 52px; background: var(--flame); color: #fff; box-shadow: 0 12px 26px rgba(232, 85, 46, .3); }
+.see { align-self: center; margin-top: 4px; padding: 6px; font: 600 14px/1 var(--sans); color: var(--deep); text-decoration: none; }
+.hdots { position: relative; display: flex; justify-content: center; gap: 7px; margin-top: 14px; }
+.hdots i { width: 7px; height: 7px; border-radius: 99px; background: rgba(16, 48, 30, .25); transition: width .4s var(--ease), background .4s; }
+.hdots i.on { width: 22px; background: var(--deep); }
+.swipe-hint.inline.dark { color: var(--ink-2); right: 0; }
+@media (max-height: 740px) { #homes .cards.focus .card-img { height: 26vh; } #homes .cards.focus h3 { font-size: 30px; } }
+/* one home fills the width — no next card peeking in */
+#homes .cards.focus { margin: 0 !important; padding: 4px 0 8px; scroll-padding: 0; }
+#homes .cards.focus .card-img { height: 28vh; min-height: 190px; }
+#homes .facts { font-size: 14px; }
+#homes .cards.focus .card-body .wa-home { margin-top: 2px; }
+#homes .cards.focus .card { height: auto; align-self: start; }
+#homes .cards.focus { padding-bottom: 16px; }
+#homes .cards.focus .card { box-shadow: 0 8px 18px rgba(16, 48, 30, .1); }
+#homes .cards.focus .card-img { height: 25vh; }
+#homes .hdots { margin-top: 4px; }
