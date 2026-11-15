@@ -76,6 +76,7 @@
       <p class="eyebrow rv">Your round</p>
       <h2 class="rv">18 holes.<br>One story.</h2>
       <p class="lead rv">A playing tip for every hole — and a line about life for the people who live beside it.</p>
+      <p class="bentgrass rv"><span class="mono">On every green</span>The only course in India to sport the famed A4 Bent Grass turf, often deemed the Rolls Royce of grasses.</p>
       <div class="hole-nav" role="tablist" aria-label="Choose a hole">
         ${C.holes.map((_, i) => `${i === 0 ? '<span class="nine">Front 9</span>' : i === 9 ? '<span class="nine">Back 9</span>' : ""}<button role="tab" data-hole="${i}" aria-label="Hole ${i + 1}">${i + 1}</button>`).join("")}
       </div>
@@ -176,8 +177,7 @@
     $("#gate-title span").textContent = C.gate.sub;
     $(".gate-hint").textContent = C.gate.hint;
 
-    const last = +(store.get("zh-gate") || 0);
-    if (location.hash || Date.now() - last < 6 * 3600e3) { close(false, true); return; }
+    // The putt is required on every visit and every refresh — no skipping (owner's choice).
     // the gate always starts the story from the top
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     scrollTo(0, 0);
@@ -208,7 +208,7 @@
       msg.textContent = line || "";
       animate(reduce ? 1 : 850, (e) => setBall(sx + (tx - sx) * e + Math.sin(e * Math.PI) * curve, sy + (ty - sy) * e), () => {
         animate(260, (e) => setBall(tx, ty + e * 4, 1 - e * .45, 1 - e), () => {
-          msg.textContent = "In the hole!";
+          msg.textContent = "In the hole — on the only A4 Bent Grass greens in India.";
           setTimeout(() => close(true), 450);
         });
       });
@@ -236,14 +236,9 @@
     g.addEventListener("pointerup", onUp);
     g.addEventListener("pointercancel", () => { if (!busy) { drag = null; setBall(0, 0); ball.classList.remove("moving"); } });
     ball.addEventListener("click", (e) => { if (e.detail === 0) holeIt("Nice touch…"); }); // keyboard Enter/Space
-    $("#putt-for-me").addEventListener("click", (e) => { e.stopPropagation(); holeIt(); });
-    $("#putt-for-me").addEventListener("pointerdown", (e) => e.stopPropagation());
-    $("#skip").addEventListener("pointerdown", (e) => e.stopPropagation());
-    $("#skip").addEventListener("click", () => close(false, false, "#holes"));
     setTimeout(() => ball.focus({ preventScroll: true }), 300);
 
     function close(holed, instant, jump) {
-      store.set("zh-gate", Date.now());
       const finish = () => {
         g.remove(); document.body.classList.remove("gating");
         if (jump) { const t = $(jump); if (t) scrollTo({ top: t.getBoundingClientRect().top + scrollY - 60, behavior: "instant" }); }
