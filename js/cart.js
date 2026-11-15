@@ -269,6 +269,8 @@
     return "";
   }
 
+  const photo = (i) => `images/holes/hole-${String(i + 1).padStart(2, "0")}.webp`;
+
   function holes() {
     const card = $(".hole"), btns = $$("[data-hole]");
     let cur = Math.min(17, Math.max(0, +(store.get("zh-hole") || 0)));
@@ -276,10 +278,13 @@
       cur = (i + 18) % 18;
       const x = C.holes[cur], s = (C.story || [])[cur] || {};
       card.innerHTML = `
-        <div class="hole-head">
-          <span class="hole-no"><small>Hole</small>${cur + 1}</span>
-          <span class="hole-meta"><b>Par ${x.par}</b>${x.hcp ? `<span>Handicap ${x.hcp}</span>` : ""}</span>
-        </div>
+        <figure class="hole-photo">
+          <img src="${photo(cur)}" alt="Aerial view of hole ${cur + 1}" width="1280" height="600">
+          <figcaption>
+            <span class="hole-no"><small>Hole</small>${cur + 1}</span>
+            <span class="hole-meta"><b>Par ${x.par}</b>${x.yds ? `<span class="yds">${x.yds} yards</span>` : ""}${x.hcp ? `<span>Handicap ${x.hcp}</span>` : ""}</span>
+          </figcaption>
+        </figure>
         ${x.badge ? `<p class="badge">${esc(x.badge)}</p>` : ""}
         <p class="tip">${esc(x.tip)}</p>
         ${s.text ? `
@@ -292,8 +297,19 @@
       const active = btns[cur], nav = $(".hole-nav");
       nav.scrollTo({ left: active.offsetLeft - nav.clientWidth / 2 + active.offsetWidth / 2, behavior: "smooth" });
       store.set("zh-hole", cur);
+      // warm up the photos either side so swiping feels instant
+      [cur + 1, cur - 1].forEach((k) => { const im = new Image(); im.src = photo((k + 18) % 18); });
     }
     btns.forEach((b) => b.addEventListener("click", () => show(+b.dataset.hole)));
+    // swipe the hole card left/right to change hole
+    let sx = null, sy = 0;
+    card.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    card.addEventListener("touchend", (e) => {
+      if (sx === null) return;
+      const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+      sx = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(cur + (dx < 0 ? 1 : -1));
+    });
     $$("[data-step]").forEach((b) => b.addEventListener("click", () => {
       show(cur + +b.dataset.step);
       card.scrollIntoView({ behavior: "smooth", block: "nearest" });

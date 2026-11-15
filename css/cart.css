@@ -405,3 +405,20 @@ body.at-after .dock { opacity: 0; transform: translateY(20px); pointer-events: n
 .yardbook small { display: block; margin-top: 3px; font-size: 13px; line-height: 1.4; color: var(--ink-2); }
 .yardbook-go { font: 700 20px/1 var(--sans); color: var(--flame); }
 @media (prefers-reduced-motion: reduce) { .mapbig-pin i { animation: none; } }
+
+/* ---------- Hole photos ---------- */
+.hole { padding-top: 0; }
+.hole::before { z-index: 2; }
+.hole-photo { position: relative; margin: 0 -24px; aspect-ratio: 1280 / 600; background: var(--deep); overflow: hidden; }
+.hole-photo img { display: block; width: 100%; height: 100%; object-fit: cover; animation: holeIn .7s var(--ease); }
+@keyframes holeIn { from { opacity: .2; transform: scale(1.06); } to { opacity: 1; transform: none; } }
+.hole-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(6, 26, 15, .82) 0%, rgba(6, 26, 15, .2) 45%, rgba(6, 26, 15, 0) 70%); }
+.hole-photo figcaption { position: absolute; z-index: 1; left: 20px; right: 18px; bottom: 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.hole-photo .hole-no { color: #fff; font-size: 76px; text-shadow: 0 6px 24px rgba(0, 0, 0, .35); }
+.hole-photo .hole-no small { color: rgba(255, 255, 255, .8); margin-bottom: 8px; }
+.hole-photo .hole-meta b { background: #fff; color: var(--deep); }
+.hole-photo .hole-meta span { color: rgba(255, 255, 255, .85); }
+.hole-photo .hole-meta .yds { font: 700 14px/1 var(--sans); letter-spacing: 0; text-transform: none; color: #fff; }
+.hole .badge { margin-top: 18px; }
+@media (prefers-reduced-motion: reduce) { .hole-photo img { animation: none; } }
+@media (max-width: 600px) { .hole-photo { aspect-ratio: 3 / 2; } }

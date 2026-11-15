@@ -102,27 +102,28 @@ window.CART = {
     { label: "The 19th hole", text: "…or not. What if you didn't have to drive back?", action: "nineteenth" },
   ],
 
-  /* Hole guide — par and playing tips from zionhills.in/golf.
+  /* Hole guide — par and playing tips from zionhills.in/golf; yardages from the
+     course's hole-by-hole drone film (TODO hole 1). Photos: images/holes/hole-01.webp … hole-18.webp
      Handicap index is shown only where the main site lists it (front nine). TODO back nine. */
   holes: [
     { par: 4, hcp: 17, tip: "A good drive avoiding the out of bounds on the right and the bunker on the left sets up a relatively small approach. The green is multi-tiered — be on the right level for a chance at birdie." },
-    { par: 5, hcp: 9, tip: "A short par 5. Avoid the bunker on the left from the tee and you might reach this green in two if the wind is with you. The green is well guarded by bunkers; a flag on the top level makes it tough." },
-    { par: 4, hcp: 15, tip: "Reachable if you miss the massive bunkers from the tee and the wind is at your back. One of the toughest greens on the course, with a giant rise guarding the back. Don't be long on the approach." },
-    { par: 4, hcp: 3, tip: "Out of bounds on the right — keep your drive to the left side of the fairway. The approach to one of the larger greens plays shorter than the yardage, as it is downhill." },
-    { par: 3, hcp: 13, tip: "Intimidating, with water all the way up to the green. The green has a big hollow in the middle. A miss to the right gives you a chance to save par." },
-    { par: 5, hcp: 1, tip: "Beware the bunkers and out of bounds on both sides off the tee. Only long hitters can reach in two because of the water short of the green. A right-side flag makes for an intimidating approach." },
-    { par: 3, hcp: 11, badge: "Toughest par 3", tip: "Water on the left, bunkers on the right. A par on this hole is a great score." },
-    { par: 4, hcp: 5, badge: "Toughest hole", tip: "Out of bounds on the right and water along the left — keeping the tee shot in play is everything. Then a challenging approach over the trees; anything left is wet." },
-    { par: 4, hcp: 7, tip: "Straightforward, but plays longer than its yardage thanks to the elevated green. Out of bounds right from the tee. Two levels on the green — a two-putt isn't guaranteed." },
-    { par: 5, tip: "A dogleg right with a very difficult tee shot — bunkers and hazards on both sides. A large bunker guards the front of the green, with the hazard along the left." },
-    { par: 4, tip: "Risk and reward. Long hitters can try driving the green, but a big bunker guards the front and there's out of bounds on both sides. A large contour in the middle of the green." },
-    { par: 4, tip: "A short par 4 with hazards and mango trees lining both sides. The green slopes front to back, bunkered all round. Hit the fairway and the approach is relatively easy." },
-    { par: 4, badge: "Signature hole · island green", tip: "Set up the approach with a good drive — the contoured island green is surrounded by the lake, so the approach has to be accurate." },
-    { par: 3, badge: "Longest par 3 in India", tip: "A real test of the long game, with bunkers on all sides of the green. Aim for the front of the green and play for par." },
-    { par: 4, tip: "A dogleg right with two options: play left for a longer approach, or drive past the fairway bunker on the right. Out of bounds all the way down the right. The green slopes front to back." },
-    { par: 3, badge: "Picturesque", tip: "A green wrapped in rock on three sides with a bunker on the left. It is uniquely shaped left to right, so check your yardage to the flag carefully." },
-    { par: 4, tip: "Long, with a downhill tee shot and an uphill approach. Avoid the creek running across the fairway off the tee." },
-    { par: 5, badge: "Longest par 5 in India", tip: "A double dogleg finish. Avoid the hazard left off the tee and the fairway bunkers left on your second; the third plays uphill to a large three-tiered green. Back-left flags are brutal." },
+    { yds: 555, par: 5, hcp: 9, tip: "A short par 5. Avoid the bunker on the left from the tee and you might reach this green in two if the wind is with you. The green is well guarded by bunkers; a flag on the top level makes it tough." },
+    { yds: 390, par: 4, hcp: 15, tip: "Reachable if you miss the massive bunkers from the tee and the wind is at your back. One of the toughest greens on the course, with a giant rise guarding the back. Don't be long on the approach." },
+    { yds: 405, par: 4, hcp: 3, tip: "Out of bounds on the right — keep your drive to the left side of the fairway. The approach to one of the larger greens plays shorter than the yardage, as it is downhill." },
+    { yds: 220, par: 3, hcp: 13, tip: "Intimidating, with water all the way up to the green. The green has a big hollow in the middle. A miss to the right gives you a chance to save par." },
+    { yds: 565, par: 5, hcp: 1, tip: "Beware the bunkers and out of bounds on both sides off the tee. Only long hitters can reach in two because of the water short of the green. A right-side flag makes for an intimidating approach." },
+    { yds: 225, par: 3, hcp: 11, badge: "Toughest par 3", tip: "Water on the left, bunkers on the right. A par on this hole is a great score." },
+    { yds: 450, par: 4, hcp: 5, badge: "Toughest hole", tip: "Out of bounds on the right and water along the left — keeping the tee shot in play is everything. Then a challenging approach over the trees; anything left is wet." },
+    { yds: 390, par: 4, hcp: 7, tip: "Straightforward, but plays longer than its yardage thanks to the elevated green. Out of bounds right from the tee. Two levels on the green — a two-putt isn't guaranteed." },
+    { yds: 565, par: 5, tip: "A dogleg right with a very difficult tee shot — bunkers and hazards on both sides. A large bunker guards the front of the green, with the hazard along the left." },
+    { yds: 365, par: 4, tip: "Risk and reward. Long hitters can try driving the green, but a big bunker guards the front and there's out of bounds on both sides. A large contour in the middle of the green." },
+    { yds: 405, par: 4, tip: "A short par 4 with hazards and mango trees lining both sides. The green slopes front to back, bunkered all round. Hit the fairway and the approach is relatively easy." },
+    { yds: 345, par: 4, badge: "Signature hole · island green", tip: "Set up the approach with a good drive — the contoured island green is surrounded by the lake, so the approach has to be accurate." },
+    { yds: 255, par: 3, badge: "Longest par 3 in India", tip: "A real test of the long game, with bunkers on all sides of the green. Aim for the front of the green and play for par." },
+    { yds: 410, par: 4, tip: "A dogleg right with two options: play left for a longer approach, or drive past the fairway bunker on the right. Out of bounds all the way down the right. The green slopes front to back." },
+    { yds: 210, par: 3, badge: "Picturesque", tip: "A green wrapped in rock on three sides with a bunker on the left. It is uniquely shaped left to right, so check your yardage to the flag carefully." },
+    { yds: 470, par: 4, tip: "Long, with a downhill tee shot and an uphill approach. Avoid the creek running across the fairway off the tee." },
+    { yds: 660, par: 5, badge: "Longest par 5 in India", tip: "A double dogleg finish. Avoid the hazard left off the tee and the fairway bunkers left on your second; the third plays uphill to a large three-tiered green. Back-left flags are brutal." },
   ],
 
   /* Little facts shown under the hole guide, one per hole, between shots */
