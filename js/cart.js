@@ -73,7 +73,7 @@
     <!-- 3. 18 holes, one story -->
     <section class="sec" id="holes">
       <p class="eyebrow rv">Your round</p>
-      <h2 class="rv">18 holes.<br>One story.</h2>
+      <h2 class="rv">18 holes. <br>One story.</h2>
       <p class="lead rv">A playing tip for every hole — and a line about life for the people who live beside it.</p>
       ${C.yardage ? `
       <a class="yardbook rv" href="${esc(C.yardage)}" download>
@@ -547,6 +547,9 @@
         } else if (loaded) film.pause();
       }, { rootMargin: "100% 0px" }).observe(dream);
     }
+
+    // while the hole guide fills the screen, the dock steps aside so every line is visible
+    new IntersectionObserver(([e]) => document.body.classList.toggle("in-holes", e.isIntersecting), { rootMargin: "-50% 0px -50% 0px" }).observe($("#holes"));
 
     // keep the city clock showing the real time
     const clock = $(".live-time");

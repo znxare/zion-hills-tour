@@ -546,3 +546,49 @@ body.gating .sound { opacity: 0; pointer-events: none; }
 @keyframes eq { from { transform: scaleY(.25); } to { transform: scaleY(1); } }
 .sound[aria-pressed="false"] .bars i { animation: none; transform: scaleY(.2); }
 .sound[aria-pressed="false"]::after { content: ""; position: absolute; width: 24px; height: 2px; background: currentColor; transform: rotate(-45deg); border-radius: 2px; }
+
+/* ===================== The flag carries the Zion Hills logo ===================== */
+.pin i {
+  width: 88px; height: 54px; clip-path: none; border-radius: 0 3px 3px 0;
+  background: url("../images/zion-logo-white.svg") 50% 52% / 74% auto no-repeat, linear-gradient(180deg, #f2603a, #d8461f);
+  box-shadow: 3px 4px 10px rgba(10, 30, 5, .2);
+}
+.pin i::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 255, 255, .14), rgba(0, 0, 0, .1) 35%, rgba(255, 255, 255, .1) 65%, rgba(0, 0, 0, .12)); }
+.pin { height: 136px; }
+
+/* ===================== 18 holes: the whole hole on one screen ===================== */
+html { scroll-padding-top: 0; scroll-snap-type: y proximity; }
+#holes { scroll-snap-align: start; }
+body.in-holes .dock { opacity: 0; transform: translateY(20px); pointer-events: none; }
+@media (max-width: 600px) {
+  #holes { min-height: 100vh; padding: calc(58px + env(safe-area-inset-top)) var(--g) calc(14px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+  #holes > * { width: 100%; }
+  #holes .eyebrow { margin-bottom: 4px; }
+  #holes h2 { font-size: 38px; }
+  #holes h2 br { display: none; }
+  #holes .lead { display: none; }
+  .hole-nav { margin: 10px -10px 10px; padding: 6px 10px; gap: 7px; }
+  .hole-nav button { width: 40px; height: 40px; font-size: 14.5px; }
+  .hole { padding: 0 18px 16px; border-radius: 24px; min-height: 0; }
+  .hole-photo { margin: 0 -18px; aspect-ratio: 2 / 1; }
+  .hole-photo .hole-no { font-size: 60px; }
+  .hole-photo figcaption { bottom: 10px; left: 16px; right: 14px; }
+  .hole-photo .hole-meta b { font-size: 18px; padding: 7px 12px; }
+  .hole .badge { margin-top: 12px; font-size: 12px; padding: 6px 10px; }
+  .tip { font-size: 15px; line-height: 1.45; margin-top: 10px; }
+  .lived { margin: 12px -6px -4px; padding: 12px 14px 14px; border-radius: 18px; }
+  .lived > span { margin-bottom: 6px; font-size: 9.5px; }
+  .lived p { font-size: 20px; line-height: 1.18; }
+  .lived::after { font-size: 64px; right: 12px; top: -4px; }
+  .lived-act { margin-top: 12px; }
+  .lived-act .btn { min-height: 46px; }
+  .hole-steps { margin-top: 10px; }
+  .hole-steps .btn { min-height: 46px; }
+}
+@media (max-width: 600px) and (max-height: 740px) {
+  .hole-photo { aspect-ratio: 5 / 2; }
+  .tip { font-size: 14px; }
+  .lived p { font-size: 18px; }
+  #holes h2 { font-size: 34px; }
+}
