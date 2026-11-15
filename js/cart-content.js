@@ -39,6 +39,36 @@ window.CART = {
     },
   },
 
+  /* ------------------------------------------------------------------
+     THE INTRO — "Sink the putt"
+     gate:  the putt-to-enter ritual (skipped automatically on a re-scan
+            within 6 hours, or with the "Skip to my hole" link)
+     city:  gritty black-and-white film scene, words build one per scroll
+     dream: the switch to Zion Hills — soft light, petals, serif type
+     ------------------------------------------------------------------ */
+  gate: {
+    label: "Zion Hills · Golf County",
+    title: "Sink the putt",
+    sub: "to enter",
+    hint: "Flick the ball towards the hole",
+  },
+  city: {
+    image: IMG.city,
+    time: "Monday · 08:47",
+    words: ["You drove", "an hour", "through traffic", "to play here."],
+  },
+  dream: {
+    image: IMG.flameTree,
+    words: ["They", "walked."],
+    line: "Zion Hills Golf County · 250 acres · 18 holes · every home faces the course",
+  },
+
+  /* Birdies: a playful reward counter (like points) — earned by taking part,
+     never required for any offer. Set on: false to hide it. */
+  birdies: { on: true },
+  // The gauge in the top-right counts down to the 19th hole as you scroll
+  gaugeYards: 420,
+
   hero: {
     image: IMG.flameTree,
     kicker: "Scanned from your golf cart",

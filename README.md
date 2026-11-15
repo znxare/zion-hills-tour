@@ -2,6 +2,16 @@
 
 A scroll-driven storytelling site that people reach by scanning a QR code. It walks a visitor through the property, then gets them to book a site visit. It works alongside the main website and doesn't replace it.
 
+## Design concept: "Sink the putt" (index.html)
+A mix of projject.ai (film grit) and why.zero.university (a dream you take part in):
+- **Gate:** sink a putt to enter (flick the ball; aim help after two misses; "Putt for me" and
+  "Skip to my hole" for everyone else). Skipped automatically on a re-scan within 6 hours.
+- **The city** in grit: black & white, grain, scanlines — "You drove / an hour / through traffic / to play here."
+- **The switch** to a dream: mint light, flame-tree petals, floating golf balls — "They / walked."
+- **Birdies** (like XP) are earned for taking part; **yards to the 19th** counts down as you scroll.
+- One dock button, always: "Your 19th hole is on us", plus a menu sheet.
+Intro wording lives in `js/cart-content.js` (`gate`, `city`, `dream`).
+
 ## Golf-cart page (index.html) — what the cart QR codes open
 Built for someone sitting in a cart mid-round: light, high-contrast, one thumb.
 1. **Hero** — "Enjoy your round. Then picture it every Saturday."
