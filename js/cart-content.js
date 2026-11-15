@@ -8,6 +8,37 @@
    ===================================================================== */
 
 window.CART = {
+  /* ------------------------------------------------------------------
+     OFFERS — set `on: false` to hide any of them. Change wording freely.
+     ------------------------------------------------------------------ */
+  offers: {
+    nineteenth: {
+      on: true,
+      title: "Your 19th hole is on us.",
+      text: "Finish your round with a drink on us at the clubhouse. If you're curious, we'll show you a home nearby — no pressure, no pitch.",
+      terms: "One complimentary drink per group at the clubhouse, for golfers who book through this page.",
+    },
+    contest: {
+      on: true,
+      hole: 13,
+      title: "Shot of the day.",
+      text: "Snap your best photo from the island green on hole 13 and send it to us on WhatsApp.",
+      prize: "The best shot each month wins a weekend stay at Zion Hills.",
+      terms: "Winner chosen by the Zion Hills team each month. By entering, you allow Zion Hills to share your photo with credit.",
+    },
+    brochure: {
+      on: true,
+      title: "Not today? Take Zion Hills home.",
+      text: "Get the homes brochure and prices on WhatsApp. No forms, no calls unless you ask.",
+    },
+    tonight: {
+      on: true,
+      title: "Don't drive back tonight.",
+      text: "Stay the night in a golf-side villa. Wake up to coffee over the fairway and a walk before breakfast.",
+      discount: "",   // e.g. "Golfers get 15% off tonight's stay" — leave empty for no offer
+    },
+  },
+
   hero: {
     image: IMG.flameTree,
     kicker: "Scanned from your golf cart",

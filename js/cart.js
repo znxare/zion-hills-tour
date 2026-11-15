@@ -20,9 +20,14 @@
   const h = new Date().getHours();
   const greet = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 
+  const O = C.offers || {};
+  const on = (k) => O[k] && O[k].on;
+
   /* ---------------- Render ---------------- */
   function render() {
     const p = C.planner;
+    const ct = O.contest || {};
+    const nt = O.nineteenth || {};
     $("#app").innerHTML = `
     <section class="hero" id="top">
       <img class="hero-img" src="${esc(C.hero.image)}" alt="The Zion Hills golf course">
@@ -32,8 +37,9 @@
         <h1>${C.hero.title}</h1>
         <p class="hero-text">${esc(C.hero.text)}</p>
         <div class="btns">
-          <a class="btn light" href="#holes">Hole-by-hole guide</a>
-          <a class="btn glass" href="#homes">See the homes</a>
+          ${on("nineteenth")
+            ? `<a class="btn light" href="#after">Your 19th hole is on us</a><a class="btn glass" href="#holes">Hole-by-hole guide</a>`
+            : `<a class="btn light" href="#holes">Hole-by-hole guide</a><a class="btn glass" href="#homes">See the homes</a>`}
         </div>
       </div>
     </section>
@@ -52,6 +58,20 @@
       <p class="between"><span>Between shots</span><em></em></p>
     </section>
 
+    ${on("contest") ? `
+    <section class="contest" id="contest">
+      <img src="${esc(IMG.aerialLake)}" alt="" loading="lazy">
+      <div class="contest-shade"></div>
+      <div class="contest-copy">
+        <p class="eyebrow">Hole ${esc(ct.hole)} · Photo contest</p>
+        <h2>${esc(ct.title)}</h2>
+        <p class="lead">${esc(ct.text)}</p>
+        <p class="prize">${esc(ct.prize)}</p>
+        <a class="btn light wide" target="_blank" rel="noopener" href="${wa(`Here's my Shot of the Day from hole ${ct.hole} at Zion Hills! (photo attached)\nName: `)}">Send my photo on WhatsApp</a>
+        <p class="small">Tap, then attach your photo in WhatsApp. ${esc(ct.terms)}</p>
+      </div>
+    </section>` : ""}
+
     <section class="sec tint" id="homes">
       <p class="eyebrow">Live here</p>
       <h2>Live on the course you're playing.</h2>
@@ -69,6 +89,14 @@
           </div>
         </article>`).join("")}
       </div>
+      ${on("brochure") ? `
+      <aside class="brochure">
+        <div>
+          <h3>${esc(O.brochure.title)}</h3>
+          <p>${esc(O.brochure.text)}</p>
+        </div>
+        <a class="btn dark wide" target="_blank" rel="noopener" href="${wa(`Hi, please send me the Zion Hills homes brochure and prices.${tail()}`)}">Send me the brochure & prices</a>
+      </aside>` : ""}
     </section>
 
     <section class="sec" id="saturday">
@@ -88,23 +116,40 @@
 
     <section class="sec dark" id="after">
       <p class="eyebrow">After your round</p>
-      <h2>See a home before you drive back.</h2>
-      <p class="lead">Tell us when you finish. We'll meet you at the clubhouse and walk you through a home, at your pace.</p>
+      <h2>${on("nineteenth") ? esc(nt.title) : "See a home before you drive back."}</h2>
+      <p class="lead">${on("nineteenth") ? esc(nt.text) : "Tell us when you finish. We'll meet you at the clubhouse and walk you through a home, at your pace."}</p>
       <form id="after-form" novalidate>
         <fieldset class="when">
           <legend>When suits you?</legend>
           ${["After 9 holes", "After 18 holes", "Later today", "Another day"].map((t, i) => `<label class="pick"><input type="radio" name="when" value="${t}" ${i === 1 ? "checked" : ""}><span>${t}</span></label>`).join("")}
         </fieldset>
         <label>Interested in
-          <select name="home"><option value="">Not sure yet — show me around</option>${homes.map((x) => `<option>${esc(x.name)}</option>`).join("")}</select>
+          <select name="home"><option value="">${on("nineteenth") ? "Just the drink — and a chat" : "Not sure yet — show me around"}</option>${homes.map((x) => `<option>${esc(x.name)}</option>`).join("")}</select>
         </label>
         <label>Your name<input name="name" autocomplete="name" required></label>
         <label>Phone<input name="phone" type="tel" inputmode="tel" autocomplete="tel" required></label>
         <p class="err" role="alert" hidden>Please add your name and phone number.</p>
-        <button class="btn light wide" type="submit">Send on WhatsApp</button>
+        <button class="btn light wide" type="submit">${on("nineteenth") ? "Save my drink — send on WhatsApp" : "Send on WhatsApp"}</button>
         <p class="small">${cart ? `We'll know you're on cart ${esc(cart)}. ` : ""}Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.</p>
+        ${on("nineteenth") && nt.terms ? `<p class="small fine">${esc(nt.terms)}</p>` : ""}
       </form>
     </section>
+
+    ${on("tonight") ? `
+    <section class="tonight">
+      <img src="${esc(IMG.sunset)}" alt="" loading="lazy">
+      <div class="contest-shade"></div>
+      <div class="contest-copy">
+        <p class="eyebrow">Stay over</p>
+        <h2>${esc(O.tonight.title)}</h2>
+        <p class="lead">${esc(O.tonight.text)}</p>
+        ${O.tonight.discount ? `<p class="prize">${esc(O.tonight.discount)}</p>` : ""}
+        <div class="btns stack">
+          <a class="btn light wide" target="_blank" rel="noopener" href="${wa(`Hi, I'm playing at Zion Hills today. Is a golf-side villa available tonight?${tail()}`)}">Is a villa free tonight? Ask on WhatsApp</a>
+          <a class="btn glass wide" href="${esc(Z.brand.stayUrl)}" target="_blank" rel="noopener">Book a stay online</a>
+        </div>
+      </div>
+    </section>` : ""}
 
     <section class="sec">
       <p class="eyebrow">Already a Zioneer?</p>
@@ -146,7 +191,8 @@
           <span class="hole-meta"><b>Par ${x.par}</b>${x.hcp ? `<span>Handicap index ${x.hcp}</span>` : ""}</span>
         </div>
         ${x.badge ? `<p class="badge">${esc(x.badge)}</p>` : ""}
-        <p class="tip">${esc(x.tip)}</p>`;
+        <p class="tip">${esc(x.tip)}</p>
+        ${on("contest") && cur + 1 === +O.contest.hole ? `<a class="callout" href="#contest">Photo contest hole — win a weekend stay ↓</a>` : ""}`;
       btns.forEach((b, k) => { b.classList.toggle("on", k === cur); b.setAttribute("aria-selected", k === cur); });
       const active = btns[cur], nav = $(".hole-nav");
       nav.scrollTo({ left: active.offsetLeft - nav.clientWidth / 2 + active.offsetWidth / 2, behavior: "smooth" });
@@ -233,6 +279,7 @@
 
   function contact() {
     $("#bar-wa").href = wa(`Hi, I'm on the course at Zion Hills and would like to know about the homes.${tail()}`);
+    if (on("nineteenth")) $(".bar-main").textContent = "Your 19th hole is on us";
     if (cart) { const b = $(".cart-badge"); b.textContent = `Cart ${cart}`; b.hidden = false; }
 
     const form = $("#after-form");
@@ -242,9 +289,11 @@
       if (!f.name.value.trim() || !f.phone.value.trim()) { err.hidden = false; return; }
       err.hidden = true;
       const msg = [
-        "Hi, I'd like to see a home at Zion Hills after my round.",
+        on("nineteenth")
+          ? "Hi, I'd like to take you up on the 19th hole — a drink at the clubhouse after my round."
+          : "Hi, I'd like to see a home at Zion Hills after my round.",
         `When: ${f.when.value}`,
-        `Interested in: ${f.home.value || "Not sure yet"}`,
+        `Interested in: ${f.home.value || (on("nineteenth") ? "Just the drink — and a chat" : "Not sure yet")}`,
         `Name: ${f.name.value.trim()}`,
         `Phone: ${f.phone.value.trim()}`,
         cart && `I'm on cart ${cart} — please meet me at the clubhouse.`,

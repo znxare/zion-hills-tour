@@ -108,6 +108,28 @@ h2.h-sm { font-size: clamp(26px, 6.6vw, 40px); }
 .between span { font: 600 11.5px/1 var(--body); letter-spacing: .14em; text-transform: uppercase; }
 .between em { font: 600 17px/1.4 var(--head); font-style: normal; }
 
+.callout {
+  display: block; margin: 16px 0 0; padding: 12px 14px; border-radius: 14px;
+  background: var(--ink); color: #fff; text-decoration: none; font: 600 15px/1.3 var(--head);
+}
+
+/* ---------- Photo contest + tonight (full-bleed photo blocks) ---------- */
+.contest, .tonight { position: relative; color: #fff; overflow: hidden; background: var(--night); min-height: 86vh; min-height: 86svh; display: flex; align-items: flex-end; }
+.contest > img, .tonight > img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+.contest-shade { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: linear-gradient(to top, rgba(0, 0, 0, .86) 0%, rgba(0, 0, 0, .45) 55%, rgba(0, 0, 0, .15) 100%); }
+.contest-copy { position: relative; padding: 72px var(--g) 64px; max-width: 640px; width: 100%; }
+.contest .eyebrow, .tonight .eyebrow { color: #cfe3bd; }
+.contest .lead, .tonight .lead { color: rgba(255, 255, 255, .88); margin-bottom: 14px; }
+.contest .small, .tonight .small { color: rgba(255, 255, 255, .72); }
+.prize { display: inline-block; margin: 0 0 20px; padding: 10px 14px; border-radius: 14px; background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); font: 600 16px/1.35 var(--head); }
+
+/* ---------- Brochure ---------- */
+.brochure { margin-top: 22px; padding: 22px; border-radius: 22px; background: var(--card); display: grid; gap: 16px; }
+.brochure h3 { margin: 0; font: 700 22px/1.2 var(--head); letter-spacing: -.02em; }
+.brochure p { margin: 6px 0 0; color: var(--ink-2); font-size: 16px; }
+@media (min-width: 700px) { .brochure { grid-template-columns: 1fr auto; align-items: center; } .brochure .btn.wide { width: auto; } }
+.fine { font-size: 12.5px !important; opacity: .85; }
+
 /* ---------- Homes ---------- */
 .cards {
   display: grid; grid-auto-flow: column; grid-auto-columns: min(82%, 330px); gap: 14px;
