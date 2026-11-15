@@ -59,6 +59,14 @@
         <button class="btn dark" data-step="1">Next hole →</button>
       </div>
       <p class="progress-note" aria-hidden="true"></p>
+      ${Z.brand.mapUrl ? `
+      <a class="mapcard" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">
+        <span class="mapcard-pin" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+        </span>
+        <span><b>Find your way around Zion Hills</b><small>Live map: clubhouse, restaurant, practice area, courts and directions.</small></span>
+        <span class="mapcard-go" aria-hidden="true">↗</span>
+      </a>` : ""}
     </section>
 
     <!-- 3. The homes they've been driving past -->
@@ -107,7 +115,7 @@
         <label>Phone<input name="phone" type="tel" inputmode="tel" autocomplete="tel" required></label>
         <p class="err" role="alert" hidden>Please add your name and phone number.</p>
         <button class="btn light wide" type="submit">${on("nineteenth") ? "Save my drink — send on WhatsApp" : "Send on WhatsApp"}</button>
-        <p class="small">${cart ? `We'll know you're on cart ${esc(cart)}. ` : ""}Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.</p>
+        <p class="small">${cart ? `We'll know you're on cart ${esc(cart)}. ` : ""}Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.${Z.brand.mapUrl ? ` <a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Find the clubhouse on the map ↗</a>` : ""}</p>
         ${on("nineteenth") && nt.terms ? `<p class="small fine">${esc(nt.terms)}</p>` : ""}
       </form>
     </section>
@@ -133,6 +141,7 @@
       <a class="btn line wide" href="story.html">Watch the full Zion Hills story →</a>
       <p class="links">
         <button class="linkish" id="invite">Already a Zioneer? Invite a friend</button>
+        ${Z.brand.mapUrl ? `<a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Estate map</a>` : ""}
         <a href="${esc(Z.brand.mainWebsite)}" target="_blank" rel="noopener">zionhills.in</a>
         <a href="tel:${esc(Z.contact.phone)}">Call</a>
         <a href="mailto:${esc(Z.contact.email)}">Email</a>
@@ -234,6 +243,7 @@
     $("#bar-wa").href = wa(`Hi, I'm on the course at Zion Hills and would like to know about the homes.${tail()}`);
     if (on("nineteenth")) $(".bar-main").textContent = "Your 19th hole is on us";
     if (cart) { const b = $(".cart-badge"); b.textContent = `Cart ${cart}`; b.hidden = false; }
+    if (Z.brand.mapUrl) { const m = $("#nav-map"); m.href = Z.brand.mapUrl; m.hidden = false; }
 
     const form = $("#after-form");
     form.addEventListener("submit", (e) => {

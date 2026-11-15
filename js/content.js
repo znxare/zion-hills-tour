@@ -50,6 +50,8 @@ window.ZION = {
     full: "Zion Hills Golf County",
     mainWebsite: "https://www.zionhills.in",
     stayUrl: "https://booking.zionhills.in/",
+    // Live estate map (ORM CRM): directions, clubhouse, courts, emergency, property-tour request
+    mapUrl: "https://zion.ormcrm.com/#/map",
     instagram: "http://instagram.com/zionhillsgolfcounty.blr",
     youtube: "https://youtube.com/@zionhillsgolfcounty",
   },
