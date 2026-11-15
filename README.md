@@ -2,6 +2,10 @@
 
 A scroll-driven storytelling site that people reach by scanning a QR code. It walks a visitor through the property, then gets them to book a site visit. It works alongside the main website and doesn't replace it.
 
+## Publishing updates (important for phones)
+Phones cache the CSS/JS files. After editing any file in `css/` or `js/`, bump the `?v=` number
+on the `<link>`/`<script>` tags in `index.html` and `story.html` (any new number works), then push.
+
 ## Design concept: "Sink the putt" (index.html)
 A mix of projject.ai (film grit) and why.zero.university (a dream you take part in):
 - **Gate:** sink a putt to enter (flick the ball; aim help after two misses; "Putt for me" and
