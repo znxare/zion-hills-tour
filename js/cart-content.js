@@ -18,7 +18,7 @@ window.CART = {
       seal: "THE 19TH HOLE · AT THE CLUBHOUSE · ",
       title: "Before you drive back.",
       text: "Meet us at the clubhouse. We'll show you a home a few minutes away.",
-      button: "Send on WhatsApp",
+      button: "Connect on WhatsApp",
       dock: "See a home after your round",
     },
     contest: {

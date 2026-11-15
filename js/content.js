@@ -59,7 +59,7 @@ window.ZION = {
 
   contact: {
     phone: "+919019231923",
-    whatsapp: "919019231923",   // TODO confirm this number is on WhatsApp
+    whatsapp: "918951741756",   // every WhatsApp button and form goes to this number
     email: "homes@zionhills.in",
     address: "Zion Hills Golf County, Kolar, Karnataka",
   },

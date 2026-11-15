@@ -148,13 +148,10 @@
       <h2>${on("nineteenth") ? esc(nt.title).replace(/&lt;br&gt;/g, "<br>") : "See a home before you drive back."}</h2>
       <p class="lead">${on("nineteenth") ? esc(nt.text) : "We'll meet you at the clubhouse and walk you through a home, at your pace."}</p>
       <form id="after-form" novalidate>
-        <label>Curious about
+        <label>I'd like to see
           <select name="home"><option value="">Not sure yet — show me around</option>${homes.map((x) => `<option>${esc(x.name)}</option>`).join("")}</select>
         </label>
-        <label>Your name<input name="name" autocomplete="name" required></label>
-        <label>Phone<input name="phone" type="tel" inputmode="tel" autocomplete="tel" required></label>
-        <p class="err" role="alert" hidden>Please add your name and phone number.</p>
-        <button class="btn light wide" type="submit">${on("nineteenth") ? esc(nt.button || "Send on WhatsApp") : "Send on WhatsApp"}</button>
+        <button class="btn light wide" type="submit">${esc((on("nineteenth") && nt.button) || "Connect on WhatsApp")}</button>
         <p class="small">Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.${Z.brand.mapUrl ? ` <a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Find the clubhouse on the map ↗</a>` : ""}</p>
       </form>
       </div>
@@ -397,16 +394,12 @@
     const form = $("#after-form");
     form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const f = form.elements, err = $(".err", form);
-      if (!f.name.value.trim() || !f.phone.value.trim()) { err.hidden = false; return; }
-      err.hidden = true;
+      // No name or phone needed: WhatsApp already tells you who they are.
+      const home = form.elements.home.value;
       const msg = [
-        on("nineteenth")
-          ? "Hi, I'd like to see a home at Zion Hills after my round."
-          : "Hi, I'd like to see a home at Zion Hills after my round.",
-        `Curious about: ${f.home.value || "Not sure yet"}`,
-        `Name: ${f.name.value.trim()}`,
-        `Phone: ${f.phone.value.trim()}`,
+        home
+          ? `Hi, I'm playing at Zion Hills. After my round I'd like to see the ${home}.`
+          : "Hi, I'm playing at Zion Hills. After my round I'd like to see a home — please show me around.",
         cart && `I'm on cart ${cart} — please meet me at the clubhouse.`,
       ].filter(Boolean).join("\n") + tail();
       window.open(wa(msg), "_blank", "noopener");
