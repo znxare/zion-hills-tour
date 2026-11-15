@@ -92,7 +92,7 @@
     <!-- 3b. Find your way: the real Zion Hills map (zion.ormcrm.com), previewed, live on tap -->
     ${Z.brand.mapUrl ? `
     <section class="sec mapsec" id="map">
-      <p class="eyebrow rv">Zion Hills · map & directions</p>
+      <p class="eyebrow rv">Zion Hills · the estate map</p>
       <h2 class="rv">Find your way.</h2>
       <div class="lmap-wrap">
         <button class="lmap-done mono" type="button" hidden>Done ✕</button>
