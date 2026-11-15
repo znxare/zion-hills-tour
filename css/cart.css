@@ -2,13 +2,16 @@
    Two moods tell the story: the city is film grit (black & white, grain, bold sans);
    Zion Hills is a calm dream (mint light, flame-tree petals, italic serif). */
 :root {
-  --mint: #e6f1e8;
-  --mint-2: #d3e8d9;
-  --mint-3: #b7d8c0;
-  --deep: #10301e;
-  --deep-2: #1a4430;
-  --ink: #12201a;
-  --ink-2: #4b5c52;
+  --mint: #f1f6e8;      /* morning light on the fairway */
+  --mint-2: #e0edcc;
+  --mint-3: #c3dea4;
+  --deep: #17351a;      /* shade under the mango trees */
+  --deep-2: #24502a;
+  --grass: #5f9e3a;     /* fairway */
+  --grass-2: #74b347;   /* the light mowing stripe */
+  --green-hi: #9fd46f;  /* bent grass in the sun */
+  --ink: #142114;
+  --ink-2: #4f5f48;
   --line: rgba(18, 32, 26, .12);
   --white: #fff;
   --flame: #e8552e;
@@ -422,3 +425,85 @@ body.at-after .dock { opacity: 0; transform: translateY(20px); pointer-events: n
 .hole .badge { margin-top: 18px; }
 @media (prefers-reduced-motion: reduce) { .hole-photo img { animation: none; } }
 @media (max-width: 600px) { .hole-photo { aspect-ratio: 3 / 2; } }
+
+/* ===================== Grass theme ===================== */
+/* The page now wears the course's own colours: fairway stripes, bent-grass greens,
+   golf-ball whites and the orange of the pin flag. */
+body { background: var(--mint); }
+
+/* gate: a real green in bent-grass colours */
+.gate { background: radial-gradient(120% 75% at 50% 0%, #fbfdf6 0%, var(--mint) 45%, #d4e8bb 100%); }
+.green {
+  background:
+    repeating-linear-gradient(100deg, rgba(255, 255, 255, .16) 0 22px, rgba(255, 255, 255, 0) 22px 44px),
+    radial-gradient(closest-side, #9ed06f, #7fbb52 70%, #6aa842);
+  box-shadow: 0 0 0 12px rgba(127, 187, 82, .3), 0 34px 60px -24px rgba(23, 53, 26, .5), inset 0 -12px 30px rgba(23, 53, 26, .18);
+}
+
+/* the round: you are standing on a mown fairway */
+#holes {
+  color: #fff;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 .1  0 0 0 0 0  0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(90deg, var(--grass) 0 64px, var(--grass-2) 64px 128px);
+  box-shadow: inset 0 40px 60px -30px rgba(0, 0, 0, .25), inset 0 -40px 60px -30px rgba(0, 0, 0, .25);
+}
+#holes .eyebrow { color: #eaffd6; opacity: .9; }
+#holes h2 { color: #fff; text-shadow: 0 4px 30px rgba(10, 40, 10, .35); }
+#holes .lead { color: rgba(255, 255, 255, .9); }
+
+/* hole numbers are golf balls; the one you're on carries the flag colour */
+.hole-nav button {
+  width: 48px; height: 48px; color: var(--deep); box-shadow: 0 6px 14px rgba(10, 40, 10, .28);
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, .95) 0 18%, transparent 19%),
+    radial-gradient(circle, rgba(0, 0, 0, .05) 1.2px, transparent 1.6px) 0 0 / 6px 6px,
+    radial-gradient(circle at 40% 35%, #fff 0%, #eef1ea 60%, #cfd6c8 100%);
+}
+.hole-nav button.seen { background: radial-gradient(circle at 40% 35%, #f4f8ee 0%, #dfe9d2 60%, #c3d1b2 100%); color: var(--deep-2); }
+.hole-nav button.on { background: var(--flame); color: #fff; transform: scale(1.12); box-shadow: 0 0 0 3px rgba(255, 255, 255, .9), 0 10px 22px rgba(10, 40, 10, .35); }
+
+.hole { background: #fff; border-radius: 30px; box-shadow: 0 30px 60px rgba(10, 40, 10, .35); color: var(--ink); }
+.hole::before { display: none; }
+.lived { background: var(--mint-2); }
+.lived.back { background: var(--deep); }
+.hole-steps .btn.line { background: rgba(255, 255, 255, .14); color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .85); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.hole-steps .btn.dark { background: #fff; color: var(--deep); box-shadow: 0 10px 24px rgba(10, 40, 10, .3); }
+
+/* homes: soft morning light, cards like tee markers */
+.sec.tint { background: linear-gradient(180deg, var(--mint) 0%, var(--mint-2) 100%); }
+.card { background: #fff; }
+.tag { background: var(--deep); color: #fff; }
+.price { color: var(--grass); }
+.pull { background: #fff; }
+.brochure {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .045) 0 34px, rgba(255, 255, 255, 0) 34px 68px),
+    var(--deep);
+}
+
+/* the clubhouse sheet */
+.n-shade { background: linear-gradient(180deg, rgba(23, 53, 26, .7) 0%, rgba(23, 53, 26, .9) 38%, #12290f 100%); }
+.nineteenth .eyebrow { color: var(--green-hi); }
+
+/* dock + menu */
+.dock-main { background: linear-gradient(180deg, var(--deep-2), var(--deep)); }
+.sheet-card { background: #fbfdf6; }
+
+/* ---------- Map: an illustrated course map, not a photo ---------- */
+.mapbig { margin-top: 22px; min-height: 0; background: #3f7a2a; box-shadow: 0 30px 60px rgba(10, 40, 10, .35); }
+.mapbig .map-art { display: block; width: 100%; height: auto; }
+.mapbig-copy { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  background: linear-gradient(to top, rgba(17, 40, 14, .85), rgba(17, 40, 14, 0)); }
+.mapbig-copy b { font: italic 400 40px/1 var(--serif); color: #fff; }
+.mapbig-btn { margin: 0; flex: none; }
+.map-art .pulse { transform-origin: center; transform-box: fill-box; animation: mapPing 2.2s var(--ease) infinite; }
+@keyframes mapPing { from { transform: scale(1); opacity: .8; } to { transform: scale(3.2); opacity: 0; } }
+.map-art .cart { stroke-dasharray: 2 7; animation: cartPath 6s linear infinite; }
+@keyframes cartPath { to { stroke-dashoffset: -90; } }
+@media (prefers-reduced-motion: reduce) { .map-art .pulse, .map-art .cart { animation: none; } }
+.mapbig-copy { position: relative; background: var(--deep); padding: 16px 16px 16px 20px; align-items: center; }
+.mapbig-copy b { font-size: 32px; white-space: nowrap; }
+.hole-nav { padding: 8px 10px; margin-left: -10px; margin-right: -10px; }
+.mapbig-copy b { font-size: 29px; }
+.mapbig-btn { padding: 11px 14px; font-size: 14px; }

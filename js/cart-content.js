@@ -22,7 +22,7 @@ window.CART = {
       dock: "See a home after your round",
     },
     contest: {
-      on: true,
+      on: false,   // removed at the owner's request
       hole: 13,
       title: "Shot of the day.",
       text: "Snap your best photo from the island green on hole 13 and send it to us on WhatsApp.",
@@ -94,7 +94,7 @@ window.CART = {
     { label: "Look around", text: "See the homes along the fairway? You've been driving past them all morning." },
     { label: "Look around", text: "Over 150 of those homes are already lived in — by families and professionals who chose this over the city." },
     { label: "In their words", text: "“We came here for a two-week break, and never left!” — Joseph Cairns & family, residents for four years." },
-    { label: "Photo contest", text: "The most photographed hole at Zion Hills. Send us your best shot of the island green — the best one each month wins a weekend stay.", action: "contest" },
+    { label: "Signature hole", text: "The most photographed hole at Zion Hills. If you lived here, it would be the view on your evening walk." },
     { text: "If you lived here, you'd have every evening of the year to master the longest par 3 in India." },
     { label: "What's next", text: "Phase II homes are being designed now, with age-in-place features — a home for every stage of your life. Expressions of interest are open." },
     { text: "If you lived here, a view like this would be what you wake up to." },

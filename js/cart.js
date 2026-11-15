@@ -91,9 +91,29 @@
       </div>
       ${Z.brand.mapUrl ? `
       <a class="mapbig rv" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">
-        <img src="${esc(IMG.aerial)}" alt="" loading="lazy">
-        <span class="mapbig-shade"></span>
-        <span class="mapbig-pin" aria-hidden="true"><i></i><svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></span>
+        <svg class="map-art" viewBox="0 0 400 240" aria-hidden="true">
+          <rect width="400" height="240" fill="#3f7a2a"/>
+          <g fill="#4d8c33"><path d="M-10 40 Q80 10 170 46 T400 30 V0 H-10Z"/><path d="M0 240 Q90 190 200 214 T410 196 V250 H0Z"/></g>
+          <g fill="#7dbb4e">
+            <path d="M28 70 C70 52 140 60 168 84 C186 100 160 120 128 112 C92 104 54 112 34 98 C18 88 16 76 28 70Z"/>
+            <path d="M212 40 C262 30 330 44 352 70 C366 88 340 100 312 92 C282 84 240 86 220 72 C204 62 200 46 212 40Z"/>
+            <path d="M190 140 C236 126 300 132 330 152 C350 166 332 188 296 182 C258 176 222 184 200 172 C182 162 178 146 190 140Z"/>
+            <path d="M40 150 C70 140 110 150 120 170 C128 188 96 196 70 188 C46 182 26 166 40 150Z"/>
+          </g>
+          <g fill="#4aa3b8" opacity=".95">
+            <path d="M120 118 C150 110 196 120 204 138 C210 152 180 160 150 152 C124 146 104 130 120 118Z"/>
+            <path d="M330 104 C350 98 372 110 368 124 C364 136 342 136 330 128 C320 120 320 108 330 104Z"/>
+          </g>
+          <ellipse cx="170" cy="134" rx="13" ry="9" fill="#9fd46f" stroke="#e9ddc0" stroke-width="2"/>
+          <g fill="#efe3c4"><ellipse cx="150" cy="82" rx="9" ry="4"/><ellipse cx="300" cy="62" rx="10" ry="4"/><ellipse cx="270" cy="168" rx="8" ry="4"/><ellipse cx="86" cy="164" rx="7" ry="3.5"/></g>
+          <path class="cart" d="M20 120 C80 128 110 96 170 100 S260 120 300 110 S360 84 392 96" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+          <g fill="#2f6320"><circle cx="196" cy="98" r="7"/><circle cx="206" cy="92" r="6"/><circle cx="60" cy="132" r="7"/><circle cx="72" cy="128" r="5"/><circle cx="352" cy="150" r="7"/><circle cx="246" cy="118" r="6"/><circle cx="258" cy="124" r="5"/></g>
+          <g transform="translate(250 104)"><circle class="pulse" r="9" fill="#e8552e"/><circle r="9" fill="#e8552e" stroke="#fff" stroke-width="3"/><path d="M-3 4V-6l7 3-7 3" fill="#fff"/></g>
+          <g fill="#fff" font-family="IBM Plex Mono, monospace" font-size="9" letter-spacing="1.2">
+            <text x="262" y="99">CLUBHOUSE</text><text x="152" y="160">13</text><text x="40" y="62">FRONT 9</text><text x="290" y="30">VILLAS</text>
+          </g>
+          <g fill="#fff"><rect x="282" y="18" width="7" height="6" rx="1"/><rect x="330" y="20" width="7" height="6" rx="1"/><rect x="342" y="30" width="7" height="6" rx="1"/><rect x="362" y="22" width="7" height="6" rx="1"/></g>
+        </svg>
         <span class="mapbig-copy">
           <b>Zion Hills map</b>
           <span class="mapbig-btn">Open the map <span aria-hidden="true">↗</span></span>
