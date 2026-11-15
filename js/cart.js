@@ -59,7 +59,9 @@
     <!-- 2. The switch: the dream of Zion Hills -->
     <section class="dream" aria-label="Zion Hills">
       <div class="stage">
-        <img class="dream-photo" src="${esc(C.dream.image)}" alt="The Zion Hills course with a flame tree in bloom" loading="lazy">
+        ${C.dream.video
+          ? `<video class="dream-photo" muted playsinline loop preload="none" poster="${esc(C.dream.image)}" aria-label="A drone flight over the Zion Hills course"></video>`
+          : `<img class="dream-photo" src="${esc(C.dream.image)}" alt="The Zion Hills course" loading="lazy">`}
         <div class="dream-wash"></div>
         ${petals(reduce ? 0 : 14)}
         <span class="float-ball" style="--s:26px;--x:12%;--y:22%;--delay:-2s" aria-hidden="true"></span>
@@ -76,29 +78,38 @@
       <p class="eyebrow rv">Your round</p>
       <h2 class="rv">18 holes.<br>One story.</h2>
       <p class="lead rv">A playing tip for every hole — and a line about life for the people who live beside it.</p>
-      <p class="bentgrass rv"><span class="mono">On every green</span>The only course in India to sport the famed A4 Bent Grass turf, often deemed the Rolls Royce of grasses.</p>
+      ${Z.brand.mapUrl ? `
+      <a class="mapbig rv" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">
+        <img src="${esc(IMG.aerial)}" alt="" loading="lazy">
+        <span class="mapbig-shade"></span>
+        <span class="mapbig-pin" aria-hidden="true"><i></i><svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></span>
+        <span class="mapbig-copy">
+          <span class="mono">Live estate map</span>
+          <b>Where's the clubhouse? The next tee? Your way home?</b>
+          <span class="mapbig-btn">Open the map <span aria-hidden="true">↗</span></span>
+        </span>
+      </a>` : ""}
+      ${C.yardage ? `
+      <a class="yardbook rv" href="${esc(C.yardage)}" download>
+        <span class="yardbook-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M6 2h11a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm1 2v16h10V4zm2 3h6v1.6H9zm0 3.4h6V12H9zm0 3.4h4v1.6H9z"/></svg></span>
+        <span><b>Download the yardage book</b><small>All 18 holes · par, handicap and how to play them · PDF</small></span>
+        <span class="yardbook-go" aria-hidden="true">↓</span>
+      </a>` : ""}
       <div class="hole-nav" role="tablist" aria-label="Choose a hole">
-        ${C.holes.map((_, i) => `${i === 0 ? '<span class="nine">Front 9</span>' : i === 9 ? '<span class="nine">Back 9</span>' : ""}<button role="tab" data-hole="${i}" aria-label="Hole ${i + 1}">${i + 1}</button>`).join("")}
+        ${C.holes.map((_, i) => `<button role="tab" data-hole="${i}" aria-label="Hole ${i + 1}">${i + 1}</button>`).join("")}
       </div>
       <article class="hole" aria-live="polite"></article>
       <div class="hole-steps">
         <button class="btn line" data-step="-1">← Previous</button>
         <button class="btn dark" data-step="1">Next hole →</button>
       </div>
-      <p class="progress-note" aria-hidden="true"></p>
-      ${Z.brand.mapUrl ? `
-      <a class="mapcard" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">
-        <span class="mapcard-pin" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></span>
-        <span><b>Find your way around Zion Hills</b><small>Live map: clubhouse, restaurant, practice area, courts and directions.</small></span>
-        <span class="mapcard-go" aria-hidden="true">↗</span>
-      </a>` : ""}
     </section>
 
     <!-- 4. The homes they've been driving past -->
     <section class="sec tint" id="homes">
       <p class="eyebrow rv">Look around</p>
       <h2 class="rv">The homes you've been driving past.</h2>
-      <p class="lead rv">Every one faces this course. Over 150 are already lived in.</p>
+      <p class="lead rv">Over 150 of them are already lived in.</p>
       <div class="cards">
         ${homes.map((x) => `
         <article class="card">
@@ -127,15 +138,15 @@
       <div class="n-shade"></div>
       <div class="n-inner">
       <div class="n-head">
-        <p class="eyebrow">The 19th hole</p>
+        <p class="eyebrow">${on("nineteenth") ? esc(nt.eyebrow || "") : "After your round"}</p>
         <svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
           <defs><path id="seal-ring" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0"/></defs>
-          <g class="seal-spin"><text><textPath href="#seal-ring" textLength="272">ON THE HOUSE · THE 19TH HOLE · </textPath></text></g>
+          <g class="seal-spin"><text><textPath href="#seal-ring" textLength="272">${esc((on("nineteenth") && nt.seal) || "A DRINK ON US · AT THE CLUBHOUSE · ")}</textPath></text></g>
           <circle cx="60" cy="60" r="27" class="seal-core"/>
           <path d="M55 74V44h1.6l.5 1.4H70l-4 6.6 4 6.6H57v15.4z" class="seal-flag"/>
         </svg>
       </div>
-      <h2>${on("nineteenth") ? esc(nt.title) : "See a home before you drive back."}</h2>
+      <h2>${on("nineteenth") ? esc(nt.title).replace(/&lt;br&gt;/g, "<br>") : "See a home before you drive back."}</h2>
       <p class="lead">${on("nineteenth") ? esc(nt.text) : "We'll meet you at the clubhouse and walk you through a home, at your pace."}</p>
       <form id="after-form" novalidate>
         <label>Curious about
@@ -144,9 +155,8 @@
         <label>Your name<input name="name" autocomplete="name" required></label>
         <label>Phone<input name="phone" type="tel" inputmode="tel" autocomplete="tel" required></label>
         <p class="err" role="alert" hidden>Please add your name and phone number.</p>
-        <button class="btn light wide" type="submit">${on("nineteenth") ? "Save my drink — send on WhatsApp" : "Send on WhatsApp"}</button>
+        <button class="btn light wide" type="submit">${on("nineteenth") ? esc(nt.button || "Save my drink — send on WhatsApp") : "Send on WhatsApp"}</button>
         <p class="small">Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.${Z.brand.mapUrl ? ` <a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Find the clubhouse on the map ↗</a>` : ""}</p>
-        ${on("nineteenth") && nt.terms ? `<p class="small fine">${esc(nt.terms)}</p>` : ""}
       </form>
       </div>
     </section>
@@ -172,7 +182,6 @@
   /* ======================= 0. Gate: sink the putt ======================= */
   function gate() {
     const g = $("#gate"), ball = $("#ball"), cup = $(".cup"), msg = $(".gate-msg");
-    $(".gate-label").textContent = C.gate.label;
     $("#gate-title em").textContent = C.gate.title;
     $("#gate-title span").textContent = C.gate.sub;
     $(".gate-hint").textContent = C.gate.hint;
@@ -263,12 +272,12 @@
         <p class="tiny">Tap, then attach your photo in WhatsApp. ${esc(ct.terms)}</p>`;
     }
     if (kind === "tonight" && on("tonight")) return `<a class="btn line wide sm" href="#tonight">Stay the night →</a>`;
-    if (kind === "nineteenth" && on("nineteenth")) return `<a class="btn dark wide" href="#after">Claim your 19th hole</a>`;
+    if (kind === "nineteenth" && on("nineteenth")) return `<a class="btn dark wide" href="#after">Claim your drink</a>`;
     return "";
   }
 
   function holes() {
-    const card = $(".hole"), btns = $$("[data-hole]"), note = $(".progress-note");
+    const card = $(".hole"), btns = $$("[data-hole]");
     let cur = Math.min(17, Math.max(0, +(store.get("zh-hole") || 0)));
     function show(i) {
       cur = (i + 18) % 18;
@@ -289,7 +298,6 @@
       btns.forEach((b, k) => { b.classList.toggle("on", k === cur); b.classList.toggle("seen", k < cur); b.setAttribute("aria-selected", k === cur); });
       const active = btns[cur], nav = $(".hole-nav");
       nav.scrollTo({ left: active.offsetLeft - nav.clientWidth / 2 + active.offsetWidth / 2, behavior: "smooth" });
-      note.textContent = cur < 8 ? "Front nine · a day in the life" : cur === 8 ? "The turn" : cur < 17 ? "Back nine · becoming a resident" : "The end of your round";
       store.set("zh-hole", cur);
     }
     btns.forEach((b) => b.addEventListener("click", () => show(+b.dataset.hole)));
@@ -319,7 +327,7 @@
       line.classList.toggle("on", pd > .5);
 
       const under = document.elementFromPoint(innerWidth / 2, 30);
-      document.body.classList.toggle("on-dark", !!(under && under.closest(".city, .nineteenth, .tonight")) || (under && under.closest(".dream") && pd < .1));
+      document.body.classList.toggle("on-dark", !!(under && under.closest(".city, .dream, .nineteenth, .tonight")));
     }
     engineUpdate = update;
     const req = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
@@ -334,6 +342,22 @@
       e.target.classList.add("in"); io.unobserve(e.target);
     }), { threshold: .12 });
     $$(".rv").forEach((el) => io.observe(el));
+
+    // dream film: load only when the scene is close, play the drone segment on a loop
+    const film = $("video.dream-photo");
+    if (film) {
+      const { from = 0, to = 0 } = C.dream;
+      let loaded = false;
+      const seekStart = () => { try { film.currentTime = from; } catch (e) { /* not ready */ } };
+      film.addEventListener("loadedmetadata", seekStart);
+      film.addEventListener("timeupdate", () => { if (to && (film.currentTime > to || film.currentTime < from - .5)) seekStart(); });
+      new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) {
+          if (!loaded) { loaded = true; film.src = C.dream.video + (from ? `#t=${from}` : ""); }
+          if (!reduce) { const p = film.play(); if (p && p.catch) p.catch(() => {}); }
+        } else if (loaded) film.pause();
+      }, { rootMargin: "100% 0px" }).observe(dream);
+    }
 
     // keep the city clock showing the real time
     const clock = $(".live-time");
@@ -352,19 +376,20 @@
 
   function chrome() {
     $("#dock-wa").href = wa(`Hi, I'm on the course at Zion Hills and would like to know about the homes.${tail()}`);
-    if (!on("nineteenth")) $(".dock-main").textContent = "See a home after your round";
+    $(".dock-main").textContent = on("nineteenth") ? (O.nineteenth.dock || "A drink on us") : "See a home after your round";
 
     // menu sheet
     const sheet = $("#sheet"), btn = $("#menu-btn");
     const links = [
       ["#holes", "Your round", "18 holes"],
       ["#homes", "The homes", "Look around"],
-      ["#after", "19th hole", "On us"],
+      ["#after", "One more round", "On us"],
+      C.yardage && [C.yardage, "Yardage book", "PDF ↓"],
       on("tonight") && ["#tonight", "Stay tonight", "Villas"],
       Z.brand.mapUrl && [Z.brand.mapUrl, "Estate map", "Live ↗"],
       [`tel:${Z.contact.phone}`, "Call us", "Now"],
     ].filter(Boolean);
-    $(".sheet-links").innerHTML = links.map(([h, t, s]) => `<a href="${esc(h)}"${/^https?:/.test(h) ? ' target="_blank" rel="noopener"' : ""}>${esc(t)}<small>${esc(s)}</small></a>`).join("");
+    $(".sheet-links").innerHTML = links.map(([h, t, s]) => `<a href="${esc(h)}"${/^https?:/.test(h) ? ' target="_blank" rel="noopener"' : /\.pdf$/.test(h) ? " download" : ""}>${esc(t)}<small>${esc(s)}</small></a>`).join("");
     const open = (v) => { sheet.hidden = !v; btn.setAttribute("aria-expanded", v); if (v) $(".sheet-links a").focus(); };
     btn.addEventListener("click", () => open(true));
     sheet.addEventListener("click", (e) => { if (e.target.closest("[data-close], .sheet-links a")) open(false); });
@@ -378,7 +403,7 @@
       err.hidden = true;
       const msg = [
         on("nineteenth")
-          ? "Hi, I'd like to take you up on the 19th hole — a drink at the clubhouse after my round."
+          ? "Hi, I'd like to take you up on the drink at the clubhouse after my round."
           : "Hi, I'd like to see a home at Zion Hills after my round.",
         `Curious about: ${f.home.value || (on("nineteenth") ? "Just the drink — and a chat" : "Not sure yet")}`,
         `Name: ${f.name.value.trim()}`,

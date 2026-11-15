@@ -6,10 +6,15 @@ A scroll-driven storytelling site that people reach by scanning a QR code. It wa
 Phones cache the CSS/JS files. After editing any file in `css/` or `js/`, bump the `?v=` number
 on the `<link>`/`<script>` tags in `index.html` and `story.html` (any new number works), then push.
 
+## Yardage book
+`yardage-book.pdf` is built from the hole guide in `js/cart-content.js` via `yardage.html`.
+After changing hole tips, open `yardage.html` in Chrome/Edge → Print → Save as PDF (paper size is set
+by the page), and replace `yardage-book.pdf`. To link the official book instead, set `yardage` in
+`js/cart-content.js` to its URL.
+
 ## Design concept: "Sink the putt" (index.html)
 A mix of projject.ai (film grit) and why.zero.university (a dream you take part in):
-- **Gate:** sink a putt to enter (flick the ball; aim help after two misses; "Putt for me" and
-  "Skip to my hole" for everyone else). Skipped automatically on a re-scan within 6 hours.
+- **Gate:** sink a putt to enter, on every visit and every refresh. Any tap, drag or flick sinks it.
 - **The city** in grit: black & white, grain, scanlines — "You drove / an hour / through traffic / to play here."
 - **The switch** to a dream: mint light, flame-tree petals, floating golf balls — "They / walked."
 - **Birdies** (like XP) are earned for taking part; **yards to the 19th** counts down as you scroll.

@@ -14,9 +14,12 @@ window.CART = {
   offers: {
     nineteenth: {
       on: true,
-      title: "Your 19th hole is on us.",
-      text: "Finish your round with a drink on us at the clubhouse. If you're curious, we'll show you a home nearby — no pressure, no pitch.",
-      terms: "One complimentary drink per group at the clubhouse, for golfers who book through this page.",
+      eyebrow: "After your round",
+      seal: "A DRINK ON US · AT THE CLUBHOUSE · ",
+      title: "One more round.<br>This one's on us.",
+      text: "Pull the cart up to the clubhouse — your first drink is on the house. Curious about living here? We'll walk you to a home a few minutes away. No pressure, no pitch.",
+      button: "Save my drink — send on WhatsApp",
+      dock: "One more round — on us",
     },
     contest: {
       on: true,
@@ -41,13 +44,11 @@ window.CART = {
 
   /* ------------------------------------------------------------------
      THE INTRO — "Sink the putt"
-     gate:  the putt-to-enter ritual (skipped automatically on a re-scan
-            within 6 hours, or with the "Skip to my hole" link)
+     gate:  the putt-to-enter ritual (shown on every visit — owner's choice)
      city:  gritty black-and-white film scene, words build one per scroll
      dream: the switch to Zion Hills — soft light, petals, serif type
      ------------------------------------------------------------------ */
   gate: {
-    label: "Zion Hills · Golf County",
     title: "Sink the putt",
     sub: "to enter",
     hint: "Tap or swipe the ball into the hole",
@@ -58,9 +59,11 @@ window.CART = {
     words: ["You drove", "an hour", "through traffic", "to play here."],
   },
   dream: {
-    image: IMG.flameTree,
+    // drone sweep over the course from the Zion Hills film (seconds 56–61.5, looped)
+    video: FILM("480p"), from: 56, to: 61.5,
+    image: IMG.aerial,        // poster / fallback
     words: ["This could be", "your home course."],
-    line: "Zion Hills Golf County · 250 acres · 18 holes · every home faces the course",
+    line: "250 acres · 18 holes · A4 Bent Grass",
   },
 
   hero: {
@@ -69,6 +72,11 @@ window.CART = {
     title: "You drove here to play.<br>The people who live here walked.",
     text: "Enjoy your round. We'll tell you their story — one hole at a time.",
   },
+
+  /* YARDAGE BOOK — the PDF in the site folder, built from the hole guide below
+     (open yardage.html and "Save as PDF" to rebuild it). To use the official book
+     instead, put its link here. */
+  yardage: "yardage-book.pdf",
 
   /* THE STORY — one line per hole, shown under each hole's playing tip.
      Front nine: a day in the life. Back nine: becoming a resident.
@@ -83,7 +91,7 @@ window.CART = {
     { text: "If you lived here, you'd know the birds by name. More than 50 species live on this estate." },
     { text: "If you lived here, the air you're breathing right now — AQI typically under 20 — would be every day's air." },
     { label: "The turn", text: "Halfway. In the city, you'd be checking the time to beat the traffic home. Here, home would already be in sight." },
-    { label: "Look around", text: "Every home at Zion Hills faces this course. You've been driving past them all morning." },
+    { label: "Look around", text: "See the homes along the fairway? You've been driving past them all morning." },
     { label: "Look around", text: "Over 150 of those homes are already lived in — by families and professionals who chose this over the city." },
     { label: "In their words", text: "“We came here for a two-week break, and never left!” — Joseph Cairns & family, residents for four years." },
     { label: "Photo contest", text: "The most photographed hole at Zion Hills. Send us your best shot of the island green — the best one each month wins a weekend stay.", action: "contest" },
