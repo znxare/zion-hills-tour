@@ -955,46 +955,31 @@ body.at-end .dock { opacity: 0; transform: translateY(20px); pointer-events: non
 #homes .cards.focus .card-img { height: 25vh; }
 #homes .hdots { margin-top: 4px; }
 
-/* ===================== Find your way: interactive estate map ===================== */
+/* ===================== Find your way: the real map ===================== */
 .mapsec { padding-top: calc(54px + env(safe-area-inset-top)); }
 .mapsec .eyebrow { margin-bottom: 6px; }
 .mapsec h2 { margin-bottom: 16px; font-size: clamp(46px, 13vw, 84px); }
-.emap { position: relative; border-radius: 26px; overflow: hidden; background: #2f6a25;
+.lmap { position: relative; height: 50vh; min-height: 300px; border-radius: 26px; overflow: hidden; background: #2a3236;
   box-shadow: 0 26px 50px rgba(0, 0, 0, .4), inset 0 0 0 1px rgba(255, 255, 255, .14); }
-.emap::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
-  background: radial-gradient(120% 90% at 50% 40%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, .28) 100%); }
-.emap-art { display: block; width: 100%; height: auto; }
-.emap-cam { transform-origin: 0 0; transform-box: view-box; transition: transform 1.1s cubic-bezier(.3, .7, .1, 1); }
-.lake { animation: shimmer 5s ease-in-out infinite alternate; }
-@keyframes shimmer { to { opacity: .86; } }
-.mpin { cursor: pointer; outline: none; }
-.mpin-body { fill: #fff; stroke: var(--flame); stroke-width: 1.8; transition: fill .3s; }
-.mpin-n { font: 700 9px var(--sans); fill: var(--deep); text-anchor: middle; pointer-events: none; }
-.mpin-ring { fill: none; stroke: #fff; stroke-width: 1.2; transform-box: fill-box; transform-origin: center; animation: pinPulse 2.6s ease-out infinite; }
-.mpin:nth-of-type(2n) .mpin-ring { animation-delay: -1.3s; }
-@keyframes pinPulse { from { transform: scale(1); opacity: .85; } to { transform: scale(2.3); opacity: 0; } }
-.mpin.on .mpin-body { fill: var(--flame); stroke: #fff; }
-.mpin.on .mpin-n { fill: #fff; }
-.mpin:focus-visible .mpin-body { stroke: #fff; stroke-width: 2.6; }
-.emap-note { position: absolute; left: 12px; bottom: 10px; z-index: 1; font-size: 9px; color: rgba(255, 255, 255, .7); pointer-events: none; }
-.emap-reset { position: absolute; right: 10px; top: 10px; z-index: 1; padding: 7px 11px; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .94); color: var(--deep); font-size: 10px; cursor: pointer; }
-.emap-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 12px calc(var(--g) * -1) 0 !important; padding: 2px var(--g); max-width: none !important; width: auto !important; }
-.emap-chips::-webkit-scrollbar { display: none; }
-.emap-chips button { flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px 8px 8px; border: 0; border-radius: 999px; cursor: pointer;
-  background: rgba(255, 255, 255, .1); color: #fff; font: 600 13.5px/1 var(--sans); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2); transition: background .3s, color .3s; }
-.emap-chips button i { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #fff; color: var(--deep); font: 700 10.5px/1 var(--sans); font-style: normal; }
-.emap-chips button.on { background: #fff; color: var(--deep); }
-.emap-chips button.on i { background: var(--flame); color: #fff; }
-.emap-card { margin-top: 10px; display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 20px;
-  background: rgba(255, 255, 255, .08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); }
-.emap-card[hidden] { display: none; }
-.emap-card img { width: 74px; height: 62px; flex: none; border-radius: 14px; object-fit: cover; }
-.emap-card b { display: block; font: italic 400 21px/1.1 var(--serif); color: #fff; }
-.emap-card p { margin: 4px 0 0; font-size: 13.5px; line-height: 1.4; color: rgba(255, 255, 255, .8); }
-.emap-card.show { animation: cardIn .5s cubic-bezier(.2, .7, .1, 1); }
-@keyframes cardIn { from { opacity: 0; transform: translateY(10px); } }
-.emap-actions { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; margin-top: 12px; }
+.lmap-preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; transform: scale(1.04); transition: transform 8s ease; }
+.mapsec .lmap-preview { animation: lmapDrift 18s ease-in-out infinite alternate; }
+@keyframes lmapDrift { to { transform: scale(1.12) translate(-2%, -2%); } }
+.lmap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, rgba(10, 18, 14, .55), rgba(10, 18, 14, 0) 45%); }
+.lmap-open { position: absolute; z-index: 2; left: 50%; bottom: 18px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 10px; white-space: nowrap;
+  padding: 14px 20px; border: 0; border-radius: 999px; background: #fff; color: var(--deep); font: 700 15px/1 var(--sans); cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .35); }
+.lmap-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--flame); box-shadow: 0 0 0 0 rgba(232, 85, 46, .6); animation: dotPing 1.8s ease-out infinite; }
+@keyframes dotPing { to { box-shadow: 0 0 0 10px rgba(232, 85, 46, 0); } }
+.lmap-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; opacity: 0; pointer-events: none; transition: opacity .5s ease; z-index: 1; }
+.lmap.live .lmap-frame { opacity: 1; pointer-events: auto; }
+.lmap.live .lmap-open, .lmap.live::after { opacity: 0; pointer-events: none; }
+.lmap-done { position: absolute; z-index: 3; right: 10px; top: 10px; padding: 8px 14px; border: 0; border-radius: 999px; background: var(--deep); color: #fff; font-size: 10.5px; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .35); }
+.lmap-note { margin: 12px 2px 0; font-size: 13.5px; line-height: 1.45; color: rgba(255, 255, 255, .75); }
+.emap-actions { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; margin-top: 12px; }
 .emap-actions .btn { min-height: 50px; font-size: 15px; }
 .mapsec .emap-actions .btn.line { color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .8); }
-@media (max-height: 740px) { .mapsec h2 { font-size: 40px; } .emap-card img { width: 60px; height: 52px; } }
-@media (prefers-reduced-motion: reduce) { .lake, .mpin-ring { animation: none; } .emap-cam { transition: none; } }
+@media (max-height: 740px) { .lmap { height: 44vh; min-height: 260px; } .mapsec h2 { font-size: 40px; } }
+@media (prefers-reduced-motion: reduce) { .mapsec .lmap-preview, .lmap-dot { animation: none; } }
+.lmap-wrap { position: relative; }
+.lmap-done { top: -44px; right: 0; background: #fff; color: var(--deep); }

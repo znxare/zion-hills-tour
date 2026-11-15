@@ -89,66 +89,21 @@
       </div>
     </section>
 
-    <!-- 3b. Find your way: an interactive, illustrative estate map -->
+    <!-- 3b. Find your way: the real Zion Hills map (zion.ormcrm.com), previewed, live on tap -->
     ${Z.brand.mapUrl ? `
     <section class="sec mapsec" id="map">
-      <p class="eyebrow rv">Zion Hills · the estate at a glance</p>
+      <p class="eyebrow rv">Zion Hills · map & directions</p>
       <h2 class="rv">Find your way.</h2>
-      <div class="emap">
-        <svg class="emap-art" viewBox="0 0 400 320" role="img" aria-label="Illustrative map of Zion Hills with tappable places">
-          <defs>
-            <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2.2" stdDeviation="2" flood-color="#08200a" flood-opacity=".5"/></filter>
-            <filter id="shs" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.2" stdDeviation="1" flood-color="#08200a" flood-opacity=".55"/></filter>
-            <radialGradient id="tree"><stop offset="0" stop-color="#4f8f37"/><stop offset=".7" stop-color="#2c6420"/><stop offset="1" stop-color="#1d4a16"/></radialGradient>
-            <radialGradient id="water" cx=".45" cy=".4"><stop offset="0" stop-color="#2a7f97"/><stop offset=".7" stop-color="#3f9fb8"/><stop offset="1" stop-color="#7cc7d4"/></radialGradient>
-            <radialGradient id="terrainA"><stop offset="0" stop-color="#3f7a2c"/><stop offset="1" stop-color="#3f7a2c" stop-opacity="0"/></radialGradient>
-            <radialGradient id="terrainB"><stop offset="0" stop-color="#21501a"/><stop offset="1" stop-color="#21501a" stop-opacity="0"/></radialGradient>
-            <pattern id="mow" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="5" height="10" fill="#ffffff" opacity=".08"/></pattern>
-          </defs>
-          <g class="emap-cam">
-            <rect x="-200" y="-200" width="800" height="720" fill="#2f6a25"/>
-            <ellipse cx="90" cy="70" rx="120" ry="80" fill="url(#terrainA)"/><ellipse cx="330" cy="260" rx="140" ry="90" fill="url(#terrainA)"/>
-            <ellipse cx="260" cy="40" rx="110" ry="60" fill="url(#terrainB)" opacity=".7"/><ellipse cx="60" cy="300" rx="120" ry="70" fill="url(#terrainB)" opacity=".7"/>
-            <!-- fairways: rough edge, fairway, mowing stripes -->
-            <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#sh)">
-              ${["M28 74 C90 42 152 62 182 110", "M222 62 C264 34 332 40 374 64", "M138 188 C176 214 216 220 252 198", "M36 296 C96 262 152 278 194 318", "M332 152 C358 180 362 212 346 244"].map((d) => `<path d="${d}" stroke="#558f39" stroke-width="34"/><path d="${d}" stroke="#7dbd4f" stroke-width="27"/><path d="${d}" stroke="url(#mow)" stroke-width="27"/>`).join("")}
-            </g>
-            <g fill="#a6da74" filter="url(#shs)"><circle cx="182" cy="110" r="11"/><circle cx="374" cy="64" r="10"/><circle cx="252" cy="198" r="10"/><circle cx="346" cy="244" r="9"/><circle cx="194" cy="318" r="10"/></g>
-            <g fill="#efe4c4" stroke="#d6c79c" stroke-width=".8"><ellipse cx="162" cy="92" rx="9" ry="4"/><ellipse cx="352" cy="51" rx="10" ry="4"/><ellipse cx="233" cy="214" rx="8" ry="3.6"/><ellipse cx="337" cy="166" rx="6" ry="3"/><ellipse cx="172" cy="302" rx="7" ry="3.2"/></g>
-            <!-- lakes, with the island green -->
-            <g filter="url(#shs)">
-              <path class="lake" d="M262 72 C292 52 340 62 348 94 C356 126 320 140 290 132 C258 124 238 94 262 72Z" fill="url(#water)" stroke="#a9dde4" stroke-width="1.6"/>
-              <path class="lake" d="M36 204 C60 184 110 190 118 218 C126 246 90 260 64 252 C36 244 18 222 36 204Z" fill="url(#water)" stroke="#a9dde4" stroke-width="1.6"/>
-            </g>
-            <circle cx="298" cy="98" r="12.5" fill="#9fd46f" stroke="#e7dcb6" stroke-width="2.2" filter="url(#shs)"/>
-            <!-- cart paths -->
-            <path id="cartpath" d="M14 146 C80 156 122 136 166 146 S240 166 272 156 S332 136 390 126" fill="none" stroke="#efe6c9" stroke-width="3" stroke-linecap="round" opacity=".9"/>
-            <path d="M200 148 C206 180 216 214 226 330" fill="none" stroke="#efe6c9" stroke-width="3" stroke-linecap="round" opacity=".9"/>
-            <!-- trees: shaded canopies -->
-            <g filter="url(#shs)">${[[58,122,7],[71,131,6],[118,62,7],[130,68,6],[206,92,7],[216,85,6],[94,166,8],[262,114,6],[150,236,7],[163,229,6],[382,196,7],[372,206,6],[18,246,7],[304,282,8],[120,124,6],[236,128,5],[318,196,6],[54,276,6]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#tree)"/>`).join("")}</g>
-            <!-- homes -->
-            <g fill="#f6f4ee" filter="url(#shs)">${[[270,214],[286,214],[302,214],[318,214],[278,230],[294,230],[310,230],[326,230],[286,246],[302,246],[318,246],[26,30],[40,30],[54,30],[33,44],[47,44]].map(([x, y]) => `<rect x="${x}" y="${y}" width="11" height="9" rx="1.6"/>`).join("")}</g>
-            <!-- Club Zion: the white tent roof -->
-            <g transform="translate(196 136)" filter="url(#sh)"><path d="M-16 8 Q-12 -6 -6 4 Q0 -10 6 4 Q12 -6 16 8 Z" fill="#fbfaf5"/><rect x="-15" y="7" width="30" height="5" rx="1" fill="#e4e2d8"/></g>
-            <!-- a golf cart doing its rounds -->
-            <g><rect x="-4.5" y="-2.8" width="9" height="5.6" rx="1.6" fill="#fff"/><rect x="-1" y="-2.8" width="4.5" height="5.6" rx="1" fill="#e8552e"/>
-              <animateMotion dur="24s" repeatCount="indefinite" rotate="auto"><mpath href="#cartpath"/></animateMotion></g>
-            <!-- places -->
-            ${PLACES.map((pl, i) => `
-            <g class="mpin" data-i="${i}" transform="translate(${pl.x} ${pl.y})" role="button" tabindex="0" aria-label="${esc(pl.title)}">
-              <circle class="mpin-ring" r="8" cy="-13"/>
-              <g filter="url(#sh)"><path class="mpin-body" d="M0 0 C-3 -5 -9 -8 -9 -14 A9 9 0 1 1 9 -14 C9 -8 3 -5 0 0Z"/></g>
-              <text class="mpin-n" y="-10.5">${i + 1}</text>
-            </g>`).join("")}
-          </g>
-        </svg>
-        <button class="emap-reset mono" type="button" hidden>Whole estate</button>
-        <span class="emap-note mono">Illustrative map</span>
+      <div class="lmap-wrap">
+        <button class="lmap-done mono" type="button" hidden>Done ✕</button>
+        <div class="lmap">
+          <img class="lmap-preview" src="images/live-map.webp" alt="The Zion Hills estate map" loading="lazy">
+          <button class="lmap-open" type="button"><span class="lmap-dot"></span>Explore the live map</button>
+        </div>
       </div>
-      <div class="emap-chips" role="tablist" aria-label="Places">${PLACES.map((pl, i) => `<button type="button" data-i="${i}"><i>${i + 1}</i>${esc(pl.short)}</button>`).join("")}</div>
-      <div class="emap-card" aria-live="polite" hidden></div>
+      <p class="lmap-note">Search any place, see the plots and get directions on the estate's main roads. Directions don't follow the cart paths.</p>
       <div class="emap-actions">
-        <a class="btn wa-home" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Open the live map ↗</a>
+        <a class="btn wa-home" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Open full screen ↗</a>
         <a class="btn line" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("Zion Hills Golf County, Kolar")}" target="_blank" rel="noopener">Directions</a>
       </div>
     </section>` : ""}
@@ -636,37 +591,25 @@
      Gentle, never pushy: a "swipe up" pill appears only when someone pauses, disappears the
      moment they scroll, shows less often as they explore, and never on the last screen.
      Side-scrolling rows glide a little and back the first time they're seen. */
-  /* ======================= Estate map: tap a place ======================= */
-  function emap() {
-    const box = $(".emap"); if (!box) return;
-    const cam = $(".emap-cam", box), pins = $$(".mpin", box), chips = $$(".emap-chips button"), card = $(".emap-card"), reset = $(".emap-reset", box);
-    let cur = -1;
-    function focus(i) {
-      if (i === cur) { zoomOut(); return; }
-      cur = i; const p = PLACES[i];
-      const k = 1.75, W = 400, H = 320;   // glide and zoom so the place sits in the middle (never past the map's edge)
-      const tx = Math.min(0, Math.max(W - W * k, W / 2 - p.x * k)), ty = Math.min(0, Math.max(H - H * k, H / 2 - (p.y - 12) * k));
-      cam.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
-      pins.forEach((el, n) => el.classList.toggle("on", n === i));
-      chips.forEach((el, n) => el.classList.toggle("on", n === i));
-      const row = chips[i].parentElement;   // centre the chip by scrolling the chip row only (never the page)
-      row.scrollTo({ left: chips[i].offsetLeft - row.clientWidth / 2 + chips[i].offsetWidth / 2, behavior: "smooth" });
-      card.hidden = false;
-      card.innerHTML = `<img src="${esc(p.img)}" alt="" loading="lazy"><div><b>${esc(p.title)}</b><p>${esc(p.text)}</p></div>`;
-      card.classList.remove("show"); void card.offsetWidth; card.classList.add("show");
-      reset.hidden = false;
-      Sound.select(Math.round(i * 17 / (PLACES.length - 1)));
-    }
-    function zoomOut() {
-      cur = -1; cam.style.transform = ""; reset.hidden = true; card.hidden = true;
-      pins.forEach((el) => el.classList.remove("on")); chips.forEach((el) => el.classList.remove("on"));
-    }
-    pins.forEach((el) => {
-      el.addEventListener("click", () => focus(+el.dataset.i));
-      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); focus(+el.dataset.i); } });
+  /* ======================= Find your way: the live map, on tap =======================
+     The card shows a picture of the real map. Tapping loads the live map inside the card; "Done"
+     puts the picture back so page scrolling is never trapped inside the map. */
+  function lmap() {
+    const box = $(".lmap"); if (!box) return;
+    const open = $(".lmap-open", box), done = $(".lmap-done");
+    let frame = null;
+    open.addEventListener("click", () => {
+      if (!frame) {
+        frame = document.createElement("iframe");
+        frame.className = "lmap-frame"; frame.title = "Zion Hills live map";
+        frame.src = Z.brand.mapUrl; frame.loading = "eager";
+        frame.setAttribute("allow", "geolocation");
+        box.appendChild(frame);
+      }
+      box.classList.add("live"); done.hidden = false;
+      Sound.select(9);
     });
-    chips.forEach((el) => el.addEventListener("click", () => focus(+el.dataset.i)));
-    reset.addEventListener("click", zoomOut);
+    done.addEventListener("click", () => { box.classList.remove("live"); done.hidden = true; });
   }
 
   function guides() {
@@ -837,16 +780,6 @@
     if (kind === "nineteenth" && on("nineteenth")) return `<a class="btn dark wide" href="#after">See a home after your round</a>`;
     return "";
   }
-
-  // Places on the illustrative estate map (positions are illustrative; facts are from zionhills.in)
-  const PLACES = [
-    { x: 196, y: 132, title: "Club Zion", short: "Club Zion", text: "Dining, pool, courts and events — where your round ends.", img: IMG.clubDining },
-    { x: 298, y: 96, title: "The island green · Hole 13", short: "Island green", text: "The signature hole, and the most photographed one.", img: "images/holes/hole-13.webp" },
-    { x: 120, y: 92, title: "Tarun Sardesai Golf Academy", short: "Golf academy", text: "Kids can train here, right while you play.", img: IMG.learners },
-    { x: 300, y: 236, title: "The villas", short: "Villas", text: "Golf-front homes — over 150 are already lived in.", img: IMG.villa },
-    { x: 78, y: 214, title: "Trails and lakes", short: "Trails & lakes", text: "Five to six kilometres of tree-lined roads for walks and rides.", img: IMG.cycling },
-    { x: 214, y: 250, title: "Sports and pool", short: "Sports & pool", text: "Tennis, squash, pickleball, swimming, archery, fishing and camping.", img: IMG.clubLawn },
-  ];
 
   const photo = (i) => `images/holes/hole-${String(i + 1).padStart(2, "0")}.webp`;
 
@@ -1125,6 +1058,6 @@
   soundButton();
   soundScenes();
   guides();
-  emap();
+  lmap();
   gate();
 })();
