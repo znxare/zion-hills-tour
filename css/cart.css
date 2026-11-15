@@ -108,6 +108,25 @@ h2.h-sm { font-size: clamp(26px, 6.6vw, 40px); }
 .between span { font: 600 11.5px/1 var(--body); letter-spacing: .14em; text-transform: uppercase; }
 .between em { font: 600 17px/1.4 var(--head); font-style: normal; }
 
+/* the story line under each hole */
+.lived { margin: 20px -8px -8px; padding: 18px 18px 20px; border-radius: 18px; background: var(--green-2); color: var(--green); }
+.lived.back { background: var(--ink); color: #fff; }
+.lived > span { display: block; font: 700 11.5px/1 var(--body); letter-spacing: .14em; text-transform: uppercase; opacity: .8; margin-bottom: 8px; }
+.lived p { margin: 0; font: 600 19px/1.4 var(--head); letter-spacing: -.01em; text-wrap: pretty; }
+.lived-act { margin-top: 14px; display: grid; gap: 8px; }
+.lived.back .btn.dark { background: #fff; color: var(--ink); }
+.lived.back .btn.line { color: #fff; box-shadow: inset 0 0 0 1.5px #fff; }
+.tiny { margin: 0; font-size: 12.5px; line-height: 1.4; opacity: .75; }
+.hole-nav button.seen { background: var(--green-2); border-color: transparent; color: var(--green); }
+.progress-note { margin: 14px 2px 0; font: 600 14px/1.3 var(--body); color: var(--ink-2); }
+
+/* homes section extras */
+.price { margin: 0 0 8px; font: 700 15px/1.3 var(--head); color: var(--green); }
+.pull { margin: 22px 0 0; padding: 22px; border-radius: 20px; background: var(--card); }
+.pull p { margin: 0; font: 600 21px/1.35 var(--head); letter-spacing: -.01em; }
+.pull cite { display: block; margin-top: 10px; font: normal 14px/1.3 var(--body); color: var(--ink-2); }
+.linkish { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: inherit; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+
 .callout {
   display: block; margin: 16px 0 0; padding: 12px 14px; border-radius: 14px;
   background: var(--ink); color: #fff; text-decoration: none; font: 600 15px/1.3 var(--head);

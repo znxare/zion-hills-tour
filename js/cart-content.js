@@ -42,9 +42,33 @@ window.CART = {
   hero: {
     image: IMG.flameTree,
     kicker: "Scanned from your golf cart",
-    title: "Enjoy your round.<br>Then picture it every Saturday.",
-    text: "Every home at Zion Hills faces this course — including the ones you're driving past.",
+    title: "You drove here to play.<br>The people who live here walked.",
+    text: "Enjoy your round. We'll tell you their story — one hole at a time.",
   },
+
+  /* THE STORY — one line per hole, shown under each hole's playing tip.
+     Front nine: a day in the life. Back nine: becoming a resident.
+     `action` adds a button: "contest" (hole 13), "tonight", "nineteenth". */
+  story: [
+    { text: "If you lived here, this is where your Saturday would start — and the drive home would be a walk." },
+    { text: "If you lived here, you could play a couple of holes before breakfast. On a Tuesday." },
+    { text: "If you lived here, these bunkers would stop being a problem. You'd have years to practise." },
+    { text: "If you lived here, your kids could be training at the Tarun Sardesai Golf Academy right now, while you play." },
+    { text: "If you lived here, water and greens like these could be the view from your verandah." },
+    { text: "If you lived here, the hardest hole on the front nine would become a story you tell neighbours over dinner." },
+    { text: "If you lived here, you'd know the birds by name. More than 50 species live on this estate." },
+    { text: "If you lived here, the air you're breathing right now — AQI typically under 20 — would be every day's air." },
+    { label: "The turn", text: "Halfway. In the city, you'd be checking the time to beat the traffic home. Here, home would already be in sight." },
+    { label: "Look around", text: "Every home at Zion Hills faces this course. You've been driving past them all morning." },
+    { label: "Look around", text: "Over 150 of those homes are already lived in — by families and professionals who chose this over the city." },
+    { label: "In their words", text: "“We came here for a two-week break, and never left!” — Joseph Cairns & family, residents for four years." },
+    { label: "Photo contest", text: "The most photographed hole at Zion Hills. Send us your best shot of the island green — the best one each month wins a weekend stay.", action: "contest" },
+    { text: "If you lived here, you'd have every evening of the year to master the longest par 3 in India." },
+    { label: "What's next", text: "Phase II homes are being designed now, with age-in-place features — a home for every stage of your life. Expressions of interest are open." },
+    { text: "If you lived here, a view like this would be what you wake up to." },
+    { label: "One more hole", text: "Here's a thought: what if you didn't drive back tonight?", action: "tonight" },
+    { label: "The 19th hole", text: "Your round ends here. For the people who live here, it never really does. Come and hear their story over a drink — it's on us.", action: "nineteenth" },
+  ],
 
   /* Hole guide — par and playing tips from zionhills.in/golf.
      Handicap index is shown only where the main site lists it (front nine). TODO back nine. */
@@ -84,6 +108,7 @@ window.CART = {
 
   /* "Make it your Saturday" planner */
   planner: {
+    on: false,   // switched off: the hole-by-hole story does this job now
     who: [
       { id: "two", label: "Just the two of us" },
       { id: "kids", label: "Family with kids" },
