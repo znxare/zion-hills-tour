@@ -187,9 +187,11 @@
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     scrollTo(0, 0);
 
-    let misses = 0, busy = false, samples = [];
+    // Forgiving putt: tap, drag, flick or pull back — every gesture sinks it.
+    // It's a welcome moment, not a test. The ball follows the finger while dragging.
+    let busy = false, drag = null, off = { x: 0, y: 0 };
     const centre = (el) => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
-    const setBall = (dx, dy, s = 1, o = 1) => { ball.style.transform = `translate(${dx}px, ${dy}px) scale(${s})`; ball.style.opacity = o; };
+    const setBall = (dx, dy, s = 1, o = 1) => { off = { x: dx, y: dy }; ball.style.transform = `translate(${dx}px, ${dy}px) scale(${s})`; ball.style.opacity = o; };
 
     function animate(dur, step, done) {
       const t0 = performance.now();
@@ -200,58 +202,46 @@
       })(t0);
     }
 
-    function holeIt() {
-      busy = true; ball.classList.add("moving");
-      const b = centre(ball), c = centre(cup);
-      const dx = c.x - b.x, dy = c.y - b.y;
-      animate(reduce ? 1 : 950, (e) => setBall(dx * e + Math.sin(e * Math.PI) * 18, dy * e), () => {
-        animate(260, (e) => setBall(dx, dy + e * 4, 1 - e * .45, 1 - e), () => {
+    // Roll the ball from wherever it is now into the cup, then open the page.
+    function holeIt(line) {
+      if (busy) return;
+      busy = true; drag = null; ball.classList.add("moving");
+      const now = centre(ball), c = centre(cup);
+      const sx = off.x, sy = off.y;                          // current offset
+      const tx = sx + (c.x - now.x), ty = sy + (c.y - now.y); // offset that puts the ball on the cup
+      const curve = Math.min(26, Math.hypot(tx - sx, ty - sy) * .06);
+      msg.textContent = line || "";
+      animate(reduce ? 1 : 850, (e) => setBall(sx + (tx - sx) * e + Math.sin(e * Math.PI) * curve, sy + (ty - sy) * e), () => {
+        animate(260, (e) => setBall(tx, ty + e * 4, 1 - e * .45, 1 - e), () => {
           msg.textContent = "In the hole!";
           setTimeout(() => close(true), 450);
         });
       });
     }
 
-    function miss(dirx, diry, dist, holeDist) {
-      busy = true; ball.classList.add("moving");
-      const travel = Math.min(dist, innerHeight * .9);
-      const tx = dirx * travel, ty = diry * travel;
-      msg.textContent = dist < holeDist * .62 ? "Short. Give it a little more pace." : dist > holeDist * 1.9 ? "Too firm — these greens are quick." : "Just missed. Try again.";
-      animate(800, (e) => setBall(tx * e, ty * e), () => {
-        setTimeout(() => animate(450, (e) => setBall(tx * (1 - e), ty * (1 - e)), () => {
-          setBall(0, 0); ball.classList.remove("moving"); busy = false; misses++;
-          if (misses >= 2) msg.textContent = "We'll give you this one — flick it up.";
-        }), 350);
-      });
-    }
-
     function onDown(e) {
       if (busy) return;
-      samples = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
-      g.setPointerCapture && g.setPointerCapture(e.pointerId);
+      drag = { sx: e.clientX, sy: e.clientY, moved: 0, dy: 0 };
+      ball.classList.add("moving");                          // stop the idle bob so the ball can follow the finger
+      try { g.setPointerCapture(e.pointerId); } catch (err) { /* not supported */ }
     }
-    function onMove(e) { if (samples.length) { samples.push({ x: e.clientX, y: e.clientY, t: performance.now() }); if (samples.length > 12) samples.shift(); } }
-    function onUp(e) {
-      if (busy || !samples.length) return;
-      samples.push({ x: e.clientX, y: e.clientY, t: performance.now() });
-      const a = samples.find((s) => samples[samples.length - 1].t - s.t < 140) || samples[0], z = samples[samples.length - 1];
-      samples = [];
-      const dt = Math.max(16, z.t - a.t), vx = (z.x - a.x) / dt, vy = (z.y - a.y) / dt, speed = Math.hypot(vx, vy);
-      if (speed < .2 || vy > -.08) { msg.textContent = "Flick the ball up, towards the hole."; return; }
-      const b = centre(ball), c = centre(cup);
-      const hx = c.x - b.x, hy = c.y - b.y, holeDist = Math.hypot(hx, hy);
-      const dist = speed * 420;
-      const angErr = Math.abs(Math.atan2(vy, vx) - Math.atan2(hy, hx));
-      const lucky = misses >= 2;
-      if (lucky || (angErr < .5 && dist > holeDist * .62 && dist < holeDist * 1.9)) holeIt();
-      else miss(vx / speed, vy / speed, dist, holeDist);
+    function onMove(e) {
+      if (!drag || busy) return;
+      const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+      drag.moved = Math.max(drag.moved, Math.hypot(dx, dy)); drag.dy = dy;
+      setBall(dx * .9, clamp(dy * .9, -innerHeight * .7, innerHeight * .15));
+    }
+    function onUp() {
+      if (!drag || busy) return;
+      const { moved, dy } = drag;
+      holeIt(moved < 10 ? "Nice touch…" : dy > 0 ? "Pure strike…" : "Straight in…");
     }
     g.addEventListener("pointerdown", onDown);
     g.addEventListener("pointermove", onMove);
     g.addEventListener("pointerup", onUp);
-    g.addEventListener("pointercancel", () => { samples = []; });
-    ball.addEventListener("click", (e) => { if (e.detail === 0 && !busy) holeIt(); }); // keyboard Enter/Space
-    $("#putt-for-me").addEventListener("click", (e) => { e.stopPropagation(); if (!busy) holeIt(); });
+    g.addEventListener("pointercancel", () => { if (!busy) { drag = null; setBall(0, 0); ball.classList.remove("moving"); } });
+    ball.addEventListener("click", (e) => { if (e.detail === 0) holeIt("Nice touch…"); }); // keyboard Enter/Space
+    $("#putt-for-me").addEventListener("click", (e) => { e.stopPropagation(); holeIt(); });
     $("#putt-for-me").addEventListener("pointerdown", (e) => e.stopPropagation());
     $("#skip").addEventListener("pointerdown", (e) => e.stopPropagation());
     $("#skip").addEventListener("click", () => close(false, false, "#holes"));

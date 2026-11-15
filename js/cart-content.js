@@ -50,7 +50,7 @@ window.CART = {
     label: "Zion Hills · Golf County",
     title: "Sink the putt",
     sub: "to enter",
-    hint: "Flick the ball towards the hole",
+    hint: "Tap or swipe the ball into the hole",
   },
   city: {
     image: IMG.city,          // real Bangalore traffic photo (CC0)
