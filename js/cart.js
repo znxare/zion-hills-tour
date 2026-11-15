@@ -179,16 +179,31 @@
       <h2>${on("nineteenth") ? esc(nt.title).replace(/&lt;br&gt;/g, "<br>") : "See a home before you drive back."}</h2>
       <p class="lead">${on("nineteenth") ? esc(nt.text) : "We'll meet you at the clubhouse and walk you through a home, at your pace."}</p>
       <form id="after-form" novalidate>
-        <label>I'd like to see
-          <select name="home"><option value="">Not sure yet — show me around</option>${homes.map((x) => `<option>${esc(x.name)}</option>`).join("")}</select>
+        <label>I'd like to know about
+          <select name="home"><option value="">Zion Hills in general</option>${homes.map((x) => `<option>${esc(x.name)}</option>`).join("")}</select>
         </label>
-        <button class="btn light wide" type="submit">${esc((on("nineteenth") && nt.button) || "Connect on WhatsApp")}</button>
-        <p class="small">Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.${Z.brand.mapUrl ? ` <a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Find the clubhouse on the map ↗</a>` : ""}</p>
+        <button class="btn light wide wa-btn" type="submit"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3 1 2.6 1.1 2.8.1.2 1.9 2.9 4.6 4 1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.1-1.2l-.4-.2z"/></svg>${esc((on("nineteenth") && nt.button) || "Chat with us on WhatsApp")}</button>
+        <div class="n-actions">
+          <a class="btn glass" href="tel:${esc(Z.contact.phone)}">Call us</a>
+          ${Z.brand.mapUrl ? `<a class="btn glass" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Clubhouse map ↗</a>` : ""}
+        </div>
       </form>
       </div>
     </section>
 
-    <!-- 6. A second chance -->
+    <!-- 6. The close -->
+    <section class="thanks" id="thanks" aria-label="Thank you">
+      <img class="t-photo" src="${esc(IMG.sunset)}" alt="" loading="lazy">
+      <div class="t-shade"></div>
+      <div class="t-in">
+        <img class="t-logo" src="images/zion-logo-white.svg" alt="Zion Hills Golf County">
+        <h2 class="t-title"><span>Thank you</span><span>for the round.</span></h2>
+        <p class="t-line">We hope the next one is on your home course.</p>
+        <a class="t-top mono" href="#top">Back to the first tee ↑</a>
+      </div>
+    </section>
+
+    <!-- 7. A second chance -->
     ${on("tonight") ? `
     <section class="tonight" id="tonight">
       <img src="${esc(IMG.sunset)}" alt="" loading="lazy">
@@ -524,6 +539,37 @@
     }
     document.addEventListener("visibilitychange", () => { if (!ctx) return; document.hidden ? ctx.suspend() : ctx.resume(); });
     const RUN = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98];   // C major pentatonic, two octaves
+    function bellFx(f, t, vol, len = 1.6) {     // a clear bell on the effects bus (plays even before the music starts)
+      [[f, vol], [f * 2.005, vol * .25]].forEach(([fr, v]) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.value = fr;
+        g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + len);
+        o.connect(g); g.connect(fx); o.start(t); o.stop(t + len + .05);
+      });
+    }
+    function type(n, gap = .055) {            // words being written: soft pen taps, in step with the text
+      if (!enabled || !ensure()) return;
+      const t0 = ctx.currentTime + .03;
+      for (let i = 0; i < n; i++) {
+        const t = t0 + i * gap, f = 2300 + Math.random() * 700;
+        blip("sine", f, f * .7, t, .03, .016 + Math.random() * .008); blip("sine", 520, 300, t, .03, .008);
+      }
+    }
+    const SLIDE = [392, 440, 523.25, 587.33, 659.25, 783.99];
+    let lastSlide = 0;
+    function slide(i) {                       // a card settling into place: a soft click and a note
+      if (!enabled || !ensure()) return;
+      const now = performance.now(); if (now - lastSlide < 120) return; lastSlide = now;
+      const t = ctx.currentTime;
+      blip("sine", 1300, 760, t, .045, .06); bellFx(SLIDE[i % SLIDE.length], t + .02, .045, 1.2);
+    }
+    let finaled = false;
+    function finale() {                       // the last chord: a slow, warm C major arpeggio that rings out
+      if (finaled || !enabled || !ensure()) return; finaled = true;
+      const t = ctx.currentTime + .15;
+      blip("sine", 65.4, 65.4, t, 4, .12, fx);
+      [261.63, 329.63, 392, 523.25, 659.25, 783.99].forEach((f, i) => bellFx(f, t + i * .22, .04, 4));
+    }
     let lastSel = 0;
     function select(i) {
       if (!enabled || !ensure()) return;
@@ -539,7 +585,7 @@
       });
     }
     return {
-      select,
+      select, type, slide, finale,
       ensure, startAmbience, tick, roll, drop, applause, whoosh, startMusic, setScene, scrolling, setEnabled, words, thud, build, bloom,
       // the film asks to be told, one bar ahead, when the next downbeat will sound (in ms from now)
       onBar(fn) { barFn = (t) => fn(Math.max(0, (t - ctx.currentTime + (ctx.outputLatency || ctx.baseLatency || 0)) * 1000)); },
@@ -557,7 +603,7 @@
     const cue = $(".cue");
     let idle = null, moved = 0, lastY = scrollY;
     const wait = () => (moved > innerHeight * 4 ? 7000 : 2600);
-    const canShow = () => !document.body.classList.contains("gating") && !document.body.classList.contains("at-after") && $("#sheet").hidden;
+    const canShow = () => !document.body.classList.contains("gating") && !document.body.classList.contains("at-after") && !document.body.classList.contains("at-end") && $("#sheet").hidden;
     const arm = () => { clearTimeout(idle); idle = setTimeout(() => cue.classList.toggle("show", canShow()), wait()); };
     addEventListener("scroll", () => { moved += Math.abs(scrollY - lastY); lastY = scrollY; cue.classList.remove("show"); arm(); }, { passive: true });
     // first appearance: soon after the putt opens the page
@@ -594,7 +640,7 @@
   }
 
   function soundScenes() {
-    const map = [[".city", "city"], [".dream", "dream"], ["#holes", "course"], ["#map", "course"], ["#homes", "course"], ["#voices", "course"], ["#after", "after"]];
+    const map = [[".city", "city"], [".dream", "dream"], ["#holes", "course"], ["#map", "course"], ["#homes", "course"], ["#voices", "course"], ["#after", "after"], ["#thanks", "after"]];
     const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) Sound.setScene(e.target.dataset.scene); }), { rootMargin: "-50% 0px -50% 0px" });
     map.forEach(([sel, name]) => { const el = $(sel); if (el) { el.dataset.scene = name; io.observe(el); } });
   }
@@ -869,7 +915,7 @@
       const light = (i) => {
         cards.forEach((c, k) => c.classList.toggle("on", k === i && seen));
         dots.forEach((d, k) => d.classList.toggle("on", k === i));
-        if (seen) Sound.words($$("span", cards[i]).length);
+        if (seen) { const n = $$("span", cards[i]).length; Sound.type(n); Sound.words(n); }
       };
       const cio = new IntersectionObserver((es) => es.forEach((e) => {
         if (e.intersectionRatio > .6) { const i = +e.target.dataset.i; if (i !== cur) { cur = i; light(i); } }
@@ -887,6 +933,23 @@
     // keep the city clock showing the real time
     const clock = $(".live-time");
     setInterval(() => { clock.textContent = nowText(); }, 20000);
+    // the close: the last chord rings as it arrives; the dock steps aside
+    const thanks = $("#thanks");
+    if (thanks) new IntersectionObserver(([e]) => {
+      document.body.classList.toggle("at-end", e.isIntersecting);
+      if (e.isIntersecting) { thanks.classList.add("in"); Sound.finale(); }
+    }, { threshold: .45 }).observe(thanks);
+    // homes slider: a click and a note each time a new home settles in
+    const cardsRow = $(".cards");
+    if (cardsRow) {
+      let touched = false, idx = 0;
+      cardsRow.addEventListener("touchstart", () => { touched = true; }, { passive: true });
+      cardsRow.addEventListener("scroll", () => {
+        const first = cardsRow.firstElementChild; if (!first || !touched) return;
+        const step = first.getBoundingClientRect().width + 14, i = Math.round(cardsRow.scrollLeft / step);
+        if (i !== idx) { idx = i; Sound.slide(i); }
+      }, { passive: true });
+    }
     const atIO = new IntersectionObserver(([e]) => document.body.classList.toggle("at-after", e.isIntersecting), { threshold: .15 });
     atIO.observe(after);
   }
@@ -926,9 +989,8 @@
       // No name or phone needed: WhatsApp already tells you who they are.
       const home = form.elements.home.value;
       const msg = [
-        home
-          ? `Hi, I'm playing at Zion Hills. After my round I'd like to see the ${home}.`
-          : "Hi, I'm playing at Zion Hills. After my round I'd like to see a home — please show me around.",
+        "Hi, before I drive back I'd love to catch up over a cup of coffee and know more about Zion Hills.",
+        home && `I'm especially curious about the ${home}.`,
         "Please meet me at the clubhouse.",
       ].filter(Boolean).join("\n") + tail();
       window.open(wa(msg), "_blank", "noopener");

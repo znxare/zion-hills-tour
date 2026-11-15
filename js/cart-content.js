@@ -15,10 +15,10 @@ window.CART = {
     nineteenth: {
       on: true,
       eyebrow: "After your round",
-      seal: "THE 19TH HOLE · AT THE CLUBHOUSE · ",
-      title: "Before you drive back.",
-      text: "Meet us at the clubhouse. We'll show you a home a few minutes away.",
-      button: "Connect on WhatsApp",
+      seal: "A CUP OF COFFEE · AT THE CLUBHOUSE · ",
+      title: "Before you drive back,",
+      text: "let's catch up over a cup of coffee to know more about Zion Hills. Tap the WhatsApp button below to reach out for any assistance.",
+      button: "Chat with us on WhatsApp",
       dock: "See a home after your round",
     },
     contest: {
