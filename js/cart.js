@@ -89,7 +89,13 @@
         <button class="btn line" data-step="-1">← Previous</button>
         <button class="btn dark" data-step="1">Next hole →</button>
       </div>
-      ${Z.brand.mapUrl ? `
+    </section>
+
+    <!-- 3b. Zion Hills map: its own section -->
+    ${Z.brand.mapUrl ? `
+    <section class="sec mapsec" id="map">
+      <p class="eyebrow rv">Find your way</p>
+      <h2 class="rv">Zion Hills map</h2>
       <a class="mapbig rv" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">
         <svg class="map-art" viewBox="0 0 400 240" aria-hidden="true">
           <rect width="400" height="240" fill="#3f7a2a"/>
@@ -115,11 +121,11 @@
           <g fill="#fff"><rect x="282" y="18" width="7" height="6" rx="1"/><rect x="330" y="20" width="7" height="6" rx="1"/><rect x="342" y="30" width="7" height="6" rx="1"/><rect x="362" y="22" width="7" height="6" rx="1"/></g>
         </svg>
         <span class="mapbig-copy">
-          <b>Zion Hills map</b>
-          <span class="mapbig-btn">Open the map <span aria-hidden="true">↗</span></span>
+          <span class="mapbig-note">Clubhouse · tees · homes · the way out</span>
+          <span class="mapbig-btn">Open the live map <span aria-hidden="true">↗</span></span>
         </span>
-      </a>` : ""}
-    </section>
+      </a>
+    </section>` : ""}
 
     <!-- 4. The homes they've been driving past -->
     <section class="sec tint" id="homes">
@@ -192,72 +198,225 @@
     </section>` : ""}`;
   }
 
+  /* ======================= Sound: putt effects + course ambience =======================
+     Everything is synthesised in the browser (no audio files, no licences). Browsers only
+     allow sound after a touch, so the putt itself switches it on. The music rises while
+     you scroll and settles to a soft bed when you stop. Mute is remembered. */
+  const Sound = (() => {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    let ctx = null, master, music, echo, playing = false, timers = [];
+    let enabled = store.get("zh-sound") !== "off";
+    const BED = .32, LIFT = .9;
+
+    function ensure() {
+      if (!AC) return null;
+      if (!ctx) {
+        ctx = new AC();
+        master = ctx.createGain(); master.gain.value = enabled ? 1 : 0; master.connect(ctx.destination);
+        music = ctx.createGain(); music.gain.value = 0;
+        const tone = ctx.createBiquadFilter(); tone.type = "lowpass"; tone.frequency.value = 2400;
+        music.connect(tone); tone.connect(master);
+        // a soft echo gives the notes some air
+        echo = ctx.createDelay(1); echo.delayTime.value = .42;
+        const fb = ctx.createGain(); fb.gain.value = .33;
+        const wet = ctx.createGain(); wet.gain.value = .35;
+        echo.connect(fb); fb.connect(echo); echo.connect(wet); wet.connect(tone);
+      }
+      if (ctx.state === "suspended") ctx.resume();
+      return ctx;
+    }
+    function noise(dur) {
+      const b = ctx.createBuffer(1, Math.max(1, ctx.sampleRate * dur | 0), ctx.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const s = ctx.createBufferSource(); s.buffer = b; return s;
+    }
+    function blip(type, f0, f1, t, dur, peak, out = master) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + .05);
+    }
+    function burst(t, dur, freq, q, peak) {
+      const n = noise(dur), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      f.type = "bandpass"; f.frequency.value = freq; f.Q.value = q;
+      g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      n.connect(f); f.connect(g); g.connect(master); n.start(t);
+    }
+
+    // --- putt effects ---
+    function tick() {                       // putter face meets the ball
+      if (!ensure()) return; const t = ctx.currentTime;
+      blip("sine", 1900, 900, t, .07, .22); burst(t, .04, 3200, 2, .25);
+    }
+    function roll(dur) {                    // the ball running across the green
+      if (!ensure()) return; const t = ctx.currentTime;
+      const n = noise(dur), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      f.type = "lowpass"; f.frequency.value = 520;
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.09, t + .08); g.gain.linearRampToValueAtTime(.0001, t + dur);
+      n.connect(f); f.connect(g); g.connect(master); n.start(t);
+    }
+    function drop() {                       // the sweetest sound in golf
+      if (!ensure()) return; const t = ctx.currentTime;
+      blip("sine", 240, 95, t, .16, .5); burst(t + .01, .05, 1400, 3, .22);
+      blip("sine", 180, 80, t + .1, .14, .3); burst(t + .11, .04, 1800, 3, .12);
+      blip("sine", 150, 70, t + .19, .1, .14);
+      if (navigator.vibrate) try { navigator.vibrate([18, 60, 12]); } catch (e) { /* no haptics */ }
+    }
+
+    // --- course ambience: slow major-7th chords, a few piano-like notes, birds ---
+    const CHORDS = [
+      [130.81, 196.00, 246.94, 293.66, 329.63],  // Cmaj9
+      [110.00, 164.81, 196.00, 246.94, 261.63],  // Am9
+      [87.31, 130.81, 164.81, 196.00, 220.00],   // Fmaj9
+      [98.00, 146.83, 164.81, 220.00, 246.94],   // G6/9
+    ];
+    const NOTES = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.5];
+    function pad(chord, t, len) {
+      chord.forEach((f, i) => {
+        [0, 4].forEach((cents) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = cents ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = cents + (i % 2 ? -3 : 3);
+          g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.022, t + 2.6); g.gain.linearRampToValueAtTime(.0001, t + len + 2.5);
+          o.connect(g); g.connect(music); o.start(t); o.stop(t + len + 2.6);
+        });
+      });
+    }
+    function pluck(t) {
+      const f = NOTES[Math.random() * NOTES.length | 0], o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + 1.8);
+      o.connect(g); g.connect(music); g.connect(echo); o.start(t); o.stop(t + 1.9);
+    }
+    function bird(t) {
+      const base = 2600 + Math.random() * 1400, n = 2 + (Math.random() * 3 | 0);
+      for (let i = 0; i < n; i++) {
+        const s = t + i * (.09 + Math.random() * .05), o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.setValueAtTime(base, s); o.frequency.exponentialRampToValueAtTime(base * (1.3 + Math.random() * .3), s + .05);
+        o.frequency.exponentialRampToValueAtTime(base * .9, s + .09);
+        g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(.018, s + .01); g.gain.exponentialRampToValueAtTime(.0001, s + .1);
+        o.connect(g); g.connect(music); o.start(s); o.stop(s + .12);
+      }
+    }
+    function loop(fn, min, max) {
+      const run = () => { if (!playing) return; fn(ctx.currentTime + .05); timers.push(setTimeout(run, (min + Math.random() * (max - min)) * 1000)); };
+      timers.push(setTimeout(run, min * 500));
+    }
+    function startMusic() {
+      if (playing || !ensure()) return;
+      playing = true;
+      let k = 0;
+      const chord = () => { if (!playing) return; pad(CHORDS[k++ % CHORDS.length], ctx.currentTime + .05, 7); timers.push(setTimeout(chord, 7000)); };
+      chord();
+      loop(pluck, 1.4, 3.2);
+      loop(bird, 5, 12);
+      music.gain.setTargetAtTime(BED, ctx.currentTime, 1.5);
+    }
+    let settle = null;
+    function scrolling() {                  // music swells while you scroll
+      if (!playing) return;
+      music.gain.setTargetAtTime(LIFT, ctx.currentTime, .35);
+      clearTimeout(settle);
+      settle = setTimeout(() => music.gain.setTargetAtTime(BED, ctx.currentTime, 1.6), 900);
+    }
+    function setEnabled(v) {
+      enabled = v; store.set("zh-sound", v ? "on" : "off");
+      if (ensure()) master.gain.setTargetAtTime(v ? 1 : 0, ctx.currentTime, .15);
+      if (v) startMusic();
+    }
+    // pause everything when the phone is locked or the tab is hidden
+    document.addEventListener("visibilitychange", () => { if (!ctx) return; document.hidden ? ctx.suspend() : ctx.resume(); });
+    return { ensure, tick, roll, drop, startMusic, scrolling, setEnabled, get enabled() { return enabled; } };
+  })();
+
+  function soundButton() {
+    document.body.insertAdjacentHTML("beforeend",
+      `<button class="sound" id="sound" aria-label="Music" aria-pressed="${Sound.enabled}"><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>`);
+    const b = $("#sound");
+    b.addEventListener("click", () => { const v = !Sound.enabled; Sound.setEnabled(v); b.setAttribute("aria-pressed", v); });
+    addEventListener("scroll", () => Sound.scrolling(), { passive: true });
+  }
+
   /* ======================= 0. Gate: sink the putt ======================= */
   function gate() {
-    const g = $("#gate"), ball = $("#ball"), cup = $(".cup"), msg = $(".gate-msg");
+    const g = $("#gate"), ball = $("#ball"), face = $("#ball i"), cup = $(".cup"), msg = $(".gate-msg");
     $("#gate-title em").textContent = C.gate.title;
     $("#gate-title span").textContent = C.gate.sub;
     $(".gate-hint").textContent = C.gate.hint;
 
     // The putt is required on every visit and every refresh — no skipping (owner's choice).
-    // the gate always starts the story from the top
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     scrollTo(0, 0);
 
     // Forgiving putt: tap, drag, flick or pull back — every gesture sinks it.
-    // It's a welcome moment, not a test. The ball follows the finger while dragging.
-    let busy = false, drag = null, off = { x: 0, y: 0 };
+    // The green is drawn in perspective, so the ball shrinks as it rolls away and spins as it goes.
+    let busy = false, drag = null, off = { x: 0, y: 0 }, travelled = 0;
     const centre = (el) => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
-    const setBall = (dx, dy, s = 1, o = 1) => { off = { x: dx, y: dy }; ball.style.transform = `translate(${dx}px, ${dy}px) scale(${s})`; ball.style.opacity = o; };
+    let home = null;                                          // the ball's resting centre
+    const depth = (dy) => { const c = centre(cup); return clamp(-dy / Math.max(1, home.y - c.y)); };
+    const setBall = (dx, dy, s = 1, o = 1) => {
+      if (!home) home = centre(ball);
+      travelled += Math.hypot(dx - off.x, dy - off.y);
+      off = { x: dx, y: dy };
+      const k = (1 - .62 * depth(dy)) * s;                    // far away = smaller
+      ball.style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
+      ball.style.opacity = o;
+      face.style.transform = `rotate(${(-travelled * 2.4).toFixed(1)}deg)`;
+    };
 
-    function animate(dur, step, done) {
+    function animate(dur, step, done, ease = (k) => 1 - Math.pow(1 - k, 3)) {
       const t0 = performance.now();
       (function f(now) {
         const k = clamp((now - t0) / dur);
-        step(1 - Math.pow(1 - k, 3), k);
+        step(ease(k), k);
         k < 1 ? requestAnimationFrame(f) : done && done();
       })(t0);
     }
 
-    // Roll the ball from wherever it is now into the cup, then open the page.
+    // Roll the ball from wherever it is now into the cup, with a little break, then open the page.
     function holeIt(line) {
       if (busy) return;
       busy = true; drag = null; ball.classList.add("moving");
+      if (!home) home = centre(ball);
       const now = centre(ball), c = centre(cup);
-      const sx = off.x, sy = off.y;                          // current offset
-      const tx = sx + (c.x - now.x), ty = sy + (c.y - now.y); // offset that puts the ball on the cup
-      const curve = Math.min(26, Math.hypot(tx - sx, ty - sy) * .06);
+      const sx = off.x, sy = off.y;
+      const tx = sx + (c.x - now.x), ty = sy + (c.y - now.y) - 1;
+      const brk = (Math.random() < .5 ? -1 : 1) * Math.min(22, Math.hypot(tx - sx, ty - sy) * .07);
+      const dur = reduce ? 1 : 1350;
       msg.textContent = line || "";
-      animate(reduce ? 1 : 850, (e) => setBall(sx + (tx - sx) * e + Math.sin(e * Math.PI) * curve, sy + (ty - sy) * e), () => {
-        animate(260, (e) => setBall(tx, ty + e * 4, 1 - e * .45, 1 - e), () => {
-          msg.textContent = "In the hole — on the only A4 Bent Grass greens in India.";
-          setTimeout(() => close(true), 450);
-        });
-      });
+      Sound.tick(); Sound.roll(dur / 1000);
+      // a putt slows as it nears the hole: ease-out with a long tail
+      animate(dur, (e) => setBall(sx + (tx - sx) * e + Math.sin(e * Math.PI) * brk, sy + (ty - sy) * e), () => {
+        Sound.drop(); g.classList.add("sunk");
+        animate(240, (e) => setBall(tx, ty + e * 3, 1 - e * .4, 1 - e), () => {
+          msg.textContent = "In the hole.";
+          setTimeout(() => close(true), 700);
+        }, (k) => k * k);
+      }, (k) => 1 - Math.pow(1 - k, 2.6));
     }
 
     function onDown(e) {
       if (busy) return;
+      Sound.ensure();                                         // this touch unlocks sound on phones
       drag = { sx: e.clientX, sy: e.clientY, moved: 0, dy: 0 };
-      ball.classList.add("moving");                          // stop the idle bob so the ball can follow the finger
+      ball.classList.add("moving");
       try { g.setPointerCapture(e.pointerId); } catch (err) { /* not supported */ }
     }
     function onMove(e) {
       if (!drag || busy) return;
       const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
       drag.moved = Math.max(drag.moved, Math.hypot(dx, dy)); drag.dy = dy;
-      setBall(dx * .9, clamp(dy * .9, -innerHeight * .7, innerHeight * .15));
+      setBall(dx * .9, clamp(dy * .9, -innerHeight * .25, innerHeight * .12));
     }
     function onUp() {
       if (!drag || busy) return;
       const { moved, dy } = drag;
-      holeIt(moved < 10 ? "Nice touch…" : dy > 0 ? "Pure strike…" : "Straight in…");
+      holeIt(moved < 10 ? "Nice touch…" : dy > 0 ? "Pure strike…" : "Rolling…");
     }
     g.addEventListener("pointerdown", onDown);
     g.addEventListener("pointermove", onMove);
     g.addEventListener("pointerup", onUp);
     g.addEventListener("pointercancel", () => { if (!busy) { drag = null; setBall(0, 0); ball.classList.remove("moving"); } });
-    ball.addEventListener("click", (e) => { if (e.detail === 0) holeIt("Nice touch…"); }); // keyboard Enter/Space
+    ball.addEventListener("click", (e) => { if (e.detail === 0) { Sound.ensure(); holeIt("Nice touch…"); } }); // keyboard Enter/Space
     setTimeout(() => ball.focus({ preventScroll: true }), 300);
 
     function close(holed, instant, jump) {
@@ -266,14 +425,15 @@
         if (jump) { const t = $(jump); if (t) scrollTo({ top: t.getBoundingClientRect().top + scrollY - 60, behavior: "instant" }); }
         engineUpdate && engineUpdate();
       };
+      if (Sound.enabled) Sound.startMusic();
       if (instant || reduce) { finish(); return; }
       g.classList.add("done");
       const c = centre(cup), max = Math.hypot(innerWidth, innerHeight) * 1.1;
-      animate(holed ? 1000 : 600, (e) => {
+      animate(holed ? 1100 : 600, (e) => {
         const r = (e * max).toFixed(1);
         const m = `radial-gradient(circle at ${c.x}px ${c.y}px, transparent ${r}px, #000 ${(+r + 1).toFixed(1)}px)`;
         g.style.webkitMaskImage = m; g.style.maskImage = m;
-      }, finish);
+      }, finish, (k) => k * k * (3 - 2 * k));
     }
   }
 
@@ -445,5 +605,6 @@
   wireSee();
   chrome();
   engine();
+  soundButton();
   gate();
 })();

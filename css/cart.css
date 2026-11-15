@@ -41,56 +41,7 @@ button, input, select { font: inherit; }
 .mono { font-family: var(--mono); font-weight: 500; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; }
 .linkish { background: none; border: 0; padding: 6px 2px; color: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
 
-/* ===================== 0. GATE: sink the putt ===================== */
-.gate {
-  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 100;
-  background: radial-gradient(120% 70% at 50% 0%, #f4faf5 0%, var(--mint) 45%, var(--mint-3) 100%);
-  overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
-}
-.caustics {
-  position: absolute; top: -20%; right: -20%; bottom: -20%; left: -20%; opacity: .55; pointer-events: none;
-  background:
-    radial-gradient(closest-side, rgba(255, 255, 255, .9), transparent) 10% 20% / 38% 22% no-repeat,
-    radial-gradient(closest-side, rgba(255, 255, 255, .7), transparent) 80% 30% / 30% 18% no-repeat,
-    radial-gradient(closest-side, rgba(255, 255, 255, .6), transparent) 30% 80% / 44% 20% no-repeat,
-    radial-gradient(closest-side, rgba(255, 255, 255, .5), transparent) 75% 85% / 30% 16% no-repeat;
-  filter: blur(18px); animation: caustic 9s ease-in-out infinite alternate;
-}
-@keyframes caustic { to { transform: translate(3%, -2%) rotate(4deg) scale(1.06); } }
-.green {
-  position: absolute; left: 50%; top: 21%; width: min(78vw, 380px); height: min(34vw, 170px);
-  transform: translateX(-50%); border-radius: 50%;
-  background: radial-gradient(closest-side, #a9d3b2, #8fc39c 70%, rgba(143, 195, 156, 0));
-}
-.cup {
-  position: absolute; left: 50%; top: 50%; width: 34px; height: 15px; transform: translate(-50%, -50%);
-  border-radius: 50%; background: radial-gradient(closest-side, #0c1f14 55%, #2c5a3c); box-shadow: inset 0 3px 4px rgba(0, 0, 0, .6);
-}
-.pin { position: absolute; left: 50%; top: 50%; width: 2px; height: 74px; transform: translate(-1px, -100%); background: linear-gradient(#fff, #ddd); }
-.pin i {
-  position: absolute; top: 0; left: 2px; width: 30px; height: 20px; background: var(--flame);
-  clip-path: polygon(0 0, 100% 50%, 0 100%); transform-origin: left center; animation: flutter 1.6s ease-in-out infinite;
-}
-@keyframes flutter { 50% { transform: scaleX(.84) skewY(4deg); } }
-.gate-copy { position: absolute; left: 0; right: 0; top: 46%; text-align: center; padding: 0 var(--g); }
-.gate-copy h1 { margin: 0; color: var(--deep); line-height: .95; }
-.gate-copy h1 em { display: block; font-size: clamp(56px, 17vw, 120px); letter-spacing: -.02em; }
-.gate-copy h1 span { display: block; margin-top: 4px; font: 700 14px/1 var(--sans); letter-spacing: .3em; text-transform: uppercase; }
-.gate-hint { margin: 18px 0 0; color: var(--deep); opacity: .7; }
-.gate-msg { min-height: 24px; margin: 10px 0 0; font: 600 16px/1.3 var(--sans); color: var(--flame); }
-.ball {
-  position: absolute; left: 50%; top: 80%; width: 36px; height: 36px; margin: -18px 0 0 -18px; padding: 0; border: 0; border-radius: 50%;
-  cursor: grab; touch-action: none;
-  background: radial-gradient(circle at 35% 30%, #fff 0 28%, #eef1ef 55%, #c9d1cc 100%);
-  box-shadow: 0 8px 14px rgba(16, 48, 30, .28), inset -3px -4px 6px rgba(0, 0, 0, .08);
-  animation: nudge 2.4s ease-in-out infinite;
-}
-.ball::after { content: ""; position: absolute; left: 50%; top: 115%; width: 2px; height: 46px; margin-left: -1px; background: linear-gradient(rgba(16, 48, 30, .35), transparent); border-radius: 2px; }
-.ball.moving { animation: none; cursor: grabbing; }
-.ball.moving::after { display: none; }
-@keyframes nudge { 50% { transform: translateY(-6px); } }
-.gate-foot { position: absolute; left: 0; right: 0; bottom: calc(18px + env(safe-area-inset-bottom)); display: flex; justify-content: center; gap: 22px; color: var(--deep); }
-.gate.done { pointer-events: none; }
+/* (gate styles: see "Sink the putt — premium" at the end) */
 
 /* ===================== 1. CITY (film grit) ===================== */
 .city { position: relative; height: 330vh; background: var(--grit); color: #fff; }
@@ -335,14 +286,6 @@ body.at-after .dock { opacity: 0; transform: translateY(20px); pointer-events: n
 /* the final CTA in flame orange — the one thing to tap */
 .nineteenth .btn.light[type="submit"] { background: var(--flame); color: #fff; min-height: 58px; font-size: 16.5px; box-shadow: 0 14px 30px rgba(232, 85, 46, .35); }
 
-/* gate: a real putting green — mown stripes, fringe, soft shadow */
-.green {
-  background:
-    repeating-linear-gradient(100deg, rgba(255, 255, 255, .13) 0 22px, rgba(255, 255, 255, 0) 22px 44px),
-    radial-gradient(closest-side, #a8d5b2, #8cc39a 72%, #7cb58b);
-  box-shadow: 0 0 0 12px rgba(140, 195, 154, .32), 0 34px 60px -24px rgba(16, 48, 30, .45), inset 0 -12px 30px rgba(16, 48, 30, .14);
-}
-.ball { box-shadow: 0 10px 16px rgba(16, 48, 30, .3), 0 2px 0 rgba(16, 48, 30, .08), inset -3px -4px 6px rgba(0, 0, 0, .08); }
 
 /* holes: fairway mowing stripes behind the guide */
 #holes {
@@ -374,7 +317,6 @@ body.at-after .dock { opacity: 0; transform: translateY(20px); pointer-events: n
 /* dock: a touch more presence */
 .dock-main { background: linear-gradient(180deg, #1f2a24, var(--ink)); box-shadow: 0 12px 28px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .12); }
 
-.gate-foot { margin: 0; font-size: 10.5px; opacity: .6; text-align: center; }
 
 /* "your home course" — the second line lands in flame */
 .dream-words span:nth-child(2) { color: #ffd9c9; }
@@ -431,14 +373,6 @@ body.at-after .dock { opacity: 0; transform: translateY(20px); pointer-events: n
    golf-ball whites and the orange of the pin flag. */
 body { background: var(--mint); }
 
-/* gate: a real green in bent-grass colours */
-.gate { background: radial-gradient(120% 75% at 50% 0%, #fbfdf6 0%, var(--mint) 45%, #d4e8bb 100%); }
-.green {
-  background:
-    repeating-linear-gradient(100deg, rgba(255, 255, 255, .16) 0 22px, rgba(255, 255, 255, 0) 22px 44px),
-    radial-gradient(closest-side, #9ed06f, #7fbb52 70%, #6aa842);
-  box-shadow: 0 0 0 12px rgba(127, 187, 82, .3), 0 34px 60px -24px rgba(23, 53, 26, .5), inset 0 -12px 30px rgba(23, 53, 26, .18);
-}
 
 /* the round: you are standing on a mown fairway */
 #holes {
@@ -507,3 +441,108 @@ body { background: var(--mint); }
 .hole-nav { padding: 8px 10px; margin-left: -10px; margin-right: -10px; }
 .mapbig-copy b { font-size: 29px; }
 .mapbig-btn { padding: 11px 14px; font-size: 14px; }
+
+/* ===================== Sink the putt — premium ===================== */
+/* You are standing over the ball: morning haze, a tree line, a mown bent-grass green
+   running away in perspective, the cup and flag, a dimpled ball at your feet. */
+.gate {
+  position: fixed; inset: 0; z-index: 100; overflow: hidden; background: #4f8f30;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.g-sky { position: absolute; left: 0; right: 0; top: 0; height: 40%;
+  background: linear-gradient(180deg, #f7f3e3 0%, #eef1dc 45%, #dbe8c6 100%); }
+.g-trees { position: absolute; left: -5%; right: -5%; top: 27%; height: 12%; filter: blur(1.5px);
+  background:
+    radial-gradient(60% 100% at 8% 100%, #3e6b2b 0 60%, transparent 61%),
+    radial-gradient(40% 90% at 26% 100%, #4a7a33 0 60%, transparent 61%),
+    radial-gradient(55% 120% at 48% 100%, #355f25 0 60%, transparent 61%),
+    radial-gradient(40% 80% at 70% 100%, #47772f 0 60%, transparent 61%),
+    radial-gradient(60% 110% at 92% 100%, #3a6629 0 60%, transparent 61%);
+  opacity: .9; }
+.g-turf { position: absolute; left: 0; right: 0; top: 37%; bottom: 0; overflow: hidden; perspective: 340px; perspective-origin: 50% 0%; }
+.g-plane {
+  position: absolute; left: -120%; right: -120%; top: 0; height: 420%; transform-origin: 50% 0%; transform: rotateX(68deg);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .05  0 0 0 0 .2  0 0 0 0 .02  0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(90deg, #5c9d36 0 110px, #6cae42 110px 220px);
+}
+/* haze at the horizon, light from the left, darker grass at your feet */
+.g-light { position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 36%, rgba(238, 243, 220, .65) 37.5%, rgba(238, 243, 220, 0) 50%),
+    radial-gradient(70% 45% at 18% 30%, rgba(255, 246, 214, .45), transparent 70%),
+    linear-gradient(180deg, transparent 60%, rgba(20, 45, 12, .45) 100%); }
+
+/* the hole: far away, so small and flattened */
+.green { position: absolute; left: 50%; top: 49%; width: 0; height: 0; }
+.cup { position: absolute; left: 0; top: 0; width: 30px; height: 10px; transform: translate(-50%, -50%); border-radius: 50%;
+  background: #f4f4ee; box-shadow: 0 0 0 2.5px rgba(122, 176, 80, .9), 0 1px 0 3px rgba(40, 80, 20, .25); }
+.cup i { position: absolute; inset: 1.5px 1.5px 0; border-radius: 50%; background: radial-gradient(70% 90% at 50% 70%, #050b04 40%, #1d2a17 100%); }
+.pin { position: absolute; left: 0; top: 0; width: 2.4px; height: 128px; transform: translate(-50%, -100%); border-radius: 2px;
+  background: linear-gradient(90deg, #d9d9d0, #fff 45%, #b9b9b0); box-shadow: 1px 0 2px rgba(0, 0, 0, .15); }
+.pin i { position: absolute; top: 2px; left: 2px; width: 46px; height: 30px; background: linear-gradient(180deg, #f2603a, #d8461f);
+  clip-path: polygon(0 0, 100% 12%, 92% 50%, 100% 88%, 0 100%); transform-origin: left center; animation: flutter 1.8s ease-in-out infinite; }
+@keyframes flutter { 50% { transform: scaleX(.86) skewY(5deg); } }
+.pin-shadow { position: absolute; left: 0; top: 0; width: 70px; height: 2px; transform-origin: 0 50%; transform: rotate(11deg); border-radius: 2px;
+  background: linear-gradient(90deg, rgba(10, 30, 5, .4), rgba(10, 30, 5, 0)); }
+
+.gate-copy { position: absolute; left: 0; right: 0; top: calc(7% + env(safe-area-inset-top)); text-align: center; padding: 0 var(--g); }
+.gate-copy h1 { margin: 0; color: var(--deep); line-height: .95; }
+.gate-copy h1 em { display: block; font-size: clamp(54px, 16vw, 112px); letter-spacing: -.02em; }
+.gate-copy h1 span { display: block; margin-top: 6px; font: 700 12.5px/1 var(--sans); letter-spacing: .34em; text-transform: uppercase; opacity: .75; }
+
+/* the ball at your feet: dimples, highlight, contact shadow */
+.ball {
+  position: absolute; left: 50%; top: 79%; width: 46px; height: 46px; margin: -23px 0 0 -23px; padding: 0; border: 0; border-radius: 50%;
+  background: none; cursor: grab; touch-action: none; transform-origin: 50% 50%; will-change: transform;
+}
+.ball i {
+  position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 1) 0 14%, rgba(255, 255, 255, 0) 38%),
+    radial-gradient(circle, rgba(60, 70, 55, .16) 1.1px, rgba(0, 0, 0, 0) 1.7px) 0 0 / 5px 5px,
+    radial-gradient(circle, rgba(60, 70, 55, .12) 1.1px, rgba(0, 0, 0, 0) 1.7px) 2.5px 2.5px / 5px 5px,
+    radial-gradient(circle at 40% 35%, #ffffff 0%, #eef0ea 55%, #b8c0b2 100%);
+  box-shadow: inset -4px -6px 10px rgba(40, 50, 35, .22), inset 2px 2px 4px rgba(255, 255, 255, .8);
+}
+.ball::before { content: ""; position: absolute; left: 2px; right: -8px; bottom: -7px; height: 13px; border-radius: 50%; z-index: -1;
+  background: radial-gradient(closest-side, rgba(10, 30, 5, .55), rgba(10, 30, 5, 0)); }
+.ball::after { content: ""; position: absolute; inset: -12px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .75); animation: invite 2.2s var(--ease) infinite; }
+@keyframes invite { from { transform: scale(.75); opacity: .9; } to { transform: scale(1.5); opacity: 0; } }
+.ball.moving { cursor: grabbing; }
+.ball.moving::after { display: none; }
+
+/* the read: a faint dotted line from ball to cup while you line up */
+.gate-hint { position: absolute; left: 0; right: 0; top: calc(79% + 44px); margin: 0; text-align: center; color: #fff; opacity: .9; text-shadow: 0 1px 8px rgba(0, 0, 0, .3); }
+.gate-msg { position: absolute; left: var(--g); right: var(--g); top: 58%; margin: 0; text-align: center; min-height: 24px;
+  font: italic 400 30px/1.1 var(--serif); color: #fff; text-shadow: 0 2px 18px rgba(10, 30, 5, .5); }
+.gate-foot { position: absolute; left: 0; right: 0; bottom: calc(16px + env(safe-area-inset-bottom)); margin: 0; text-align: center; color: #fff; font-size: 10.5px; opacity: .75; }
+.gate.done { pointer-events: none; }
+.gate.sunk .cup { animation: rattle .35s ease-out; }
+@keyframes rattle { 30% { transform: translate(-50%, -50%) scale(1.12); } 60% { transform: translate(-50%, -50%) scale(.96); } }
+@media (prefers-reduced-motion: reduce) { .pin i, .ball::after { animation: none; } }
+
+/* ===================== Zion Hills map section ===================== */
+.mapsec { color: #fff; background:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.06' stroke-width='1.2'%3E%3Cpath d='M-20 60c40-30 80 20 130-5s90-30 140 0'/%3E%3Cpath d='M-20 100c40-30 80 20 130-5s90-30 140 0'/%3E%3Cpath d='M-20 140c40-30 80 20 130-5s90-30 140 0'/%3E%3Cpath d='M-20 180c40-30 80 20 130-5s90-30 140 0'/%3E%3Cpath d='M-20 220c40-30 80 20 130-5s90-30 140 0'/%3E%3Cpath d='M-20 20c40-30 80 20 130-5s90-30 140 0'/%3E%3C/g%3E%3C/svg%3E"),
+  linear-gradient(180deg, #1b3d1c 0%, var(--deep) 100%); }
+.mapsec .eyebrow { color: var(--green-hi); opacity: 1; }
+.mapsec h2 { color: #fff; }
+.mapsec .mapbig { margin-top: 26px; }
+.mapsec .mapbig-copy { display: grid; gap: 12px; justify-items: stretch; padding: 16px; }
+.mapbig-note { font: 500 10.5px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: rgba(255, 255, 255, .7); }
+.mapsec .mapbig-btn { justify-self: stretch; text-align: center; padding: 15px 18px; font-size: 15.5px; background: var(--flame); color: #fff; box-shadow: 0 12px 26px rgba(232, 85, 46, .35); }
+
+/* ===================== Sound toggle ===================== */
+.sound {
+  position: fixed; z-index: 66; top: calc(14px + env(safe-area-inset-top)); right: 14px; width: 42px; height: 42px; border-radius: 50%; border: 0; padding: 0;
+  display: grid; place-items: center; cursor: pointer; color: #fff; background: rgba(20, 40, 15, .45);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3); transition: opacity .3s;
+}
+body.gating .sound { opacity: 0; pointer-events: none; }
+.sound .bars { display: flex; align-items: flex-end; gap: 2.5px; height: 14px; }
+.sound .bars i { width: 2.5px; height: 100%; border-radius: 2px; background: currentColor; transform-origin: bottom; animation: eq 1s ease-in-out infinite alternate; }
+.sound .bars i:nth-child(2) { animation-delay: -.4s; } .sound .bars i:nth-child(3) { animation-delay: -.7s; } .sound .bars i:nth-child(4) { animation-delay: -.2s; }
+@keyframes eq { from { transform: scaleY(.25); } to { transform: scaleY(1); } }
+.sound[aria-pressed="false"] .bars i { animation: none; transform: scaleY(.2); }
+.sound[aria-pressed="false"]::after { content: ""; position: absolute; width: 24px; height: 2px; background: currentColor; transform: rotate(-45deg); border-radius: 2px; }
