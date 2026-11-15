@@ -12,12 +12,9 @@
   const on = (k) => O[k] && O[k].on;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Which cart? Print each cart's QR as ?cart=12
-  const params = new URLSearchParams(location.search);
-  const cart = (params.get("cart") || "").replace(/[^\w-]/g, "").slice(0, 12);
-  const source = cart ? `golf cart ${cart}` : params.get("src") || "golf cart";
+  // No cart number or source is added to messages (owner's choice).
   const wa = (text) => `https://wa.me/${Z.contact.whatsapp}?text=${encodeURIComponent(text)}`;
-  const tail = () => `\n(From the Zion Hills ${source} page)`;
+  const tail = () => "";
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } },
@@ -400,7 +397,7 @@
         home
           ? `Hi, I'm playing at Zion Hills. After my round I'd like to see the ${home}.`
           : "Hi, I'm playing at Zion Hills. After my round I'd like to see a home — please show me around.",
-        cart && `I'm on cart ${cart} — please meet me at the clubhouse.`,
+        "Please meet me at the clubhouse.",
       ].filter(Boolean).join("\n") + tail();
       window.open(wa(msg), "_blank", "noopener");
     });
