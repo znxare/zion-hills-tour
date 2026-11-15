@@ -65,10 +65,10 @@ window.CART = {
     film: FILM,
     // Only shots that fill a portrait phone screen (people shots were cropped on phones).
     shots: [
-      { t: 128, rate: .85 },    // aerial: villas wrapped around the fairways
-      { t: 76, rate: .85 },     // drone over the lake and greens
-      { t: 19, rate: .85 },     // sprinklers over the fairway
-      { t: 57, rate: .85 },     // drone over the course
+      { t: 128, rate: .7 },     // aerial: villas wrapped around the fairways (clean to 131.9 s)
+      { t: 76, rate: .7 },      // drone over the lake and greens (clean to 79.8 s)
+      { t: 18.95, rate: .48 },  // sprinklers over the fairway, in slow motion (clean to 21.5 s)
+      { t: 57, rate: .7 },      // drone over the course (clean to 61.5 s)
     ],
     cut: 3,                     // seconds per shot (half a chord of the dream music)
     image: IMG.aerial,        // poster / fallback

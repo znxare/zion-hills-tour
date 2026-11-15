@@ -689,3 +689,11 @@ body.in-holes .dock { opacity: 0; transform: translateY(20px); pointer-events: n
 .tbro { margin: 16px var(--g) 0; min-height: 50px; background: var(--flame); color: #fff; box-shadow: 0 12px 26px rgba(232, 85, 46, .3); }
 @media (max-height: 740px) { .tphoto { height: 25vh; } .tq { font-size: 20px; padding-top: 26px; } }
 @media (prefers-reduced-motion: reduce) { .tq span { opacity: 1; filter: none; transform: none; } }
+
+/* ---------- the dream reel, v2: long dissolves, unbroken motion, no filters (smooth on phones) ---------- */
+.reel video { opacity: 0; filter: none; transform: scale(1.1); z-index: 1; will-change: opacity, transform;
+  transition: opacity 1.4s cubic-bezier(.45, 0, .25, 1); animation: none; }
+.reel video.show { opacity: 1; z-index: 2; animation: none; }
+.reel video.run { animation: pull 6.2s cubic-bezier(.3, 0, .2, 1) forwards; }
+@keyframes pull { from { transform: scale(1.14); } to { transform: scale(1.02); } }
+@media (prefers-reduced-motion: reduce) { .reel video.run { animation: none; } }

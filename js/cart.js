@@ -207,41 +207,59 @@
     </section>` : ""}`;
   }
 
-  /* ======================= Sound: the putt, the course, and a score that follows the story =======================
-     Everything is synthesised in the browser (no audio files, no licences). Browsers only allow
-     sound after a touch, so the first touch on the green switches it on.
-       gate   — birdsong and a light breeze while you line up; putter, roll, cup rattle, a polite golf clap
-       city   — a low drone and distant traffic rumble (the drive you just made)
-       dream  — the score opens up: bright major chords, piano notes, birds
-       course — calm and spacious through the holes, the map and the homes
-       after  — warm, slower chords at the clubhouse
-     The music swells while you scroll and settles when you stop. Mute is remembered. */
+  /* ======================= Sound: a tempo-locked score =======================
+     Everything is synthesised in the browser (no audio files, no licences).
+     The score runs on one clock — 80 BPM, 4/4, a bar every 3 s — so every musical event lands
+     on the grid: chords change on the bar, a soft bass sits on each downbeat, the arpeggio is
+     in time, and the dream film dissolves exactly on the downbeat.
+       gate   — birdsong and a light breeze; putter, roll, cup rattle, a polite golf clap
+       city   — a low drone and distant traffic (the drive you just made)
+       dream  — the score opens up: bright chords and a rising arpeggio; the film cuts on the bar
+       course — calm and spacious through the holes, map, homes and residents
+       after  — warm and slower at the clubhouse
+     Scenes change on the next bar, never mid-phrase. The mix is glued by a compressor and
+     sits in a soft reverb. Scrolling lifts and brightens the music. Mute is remembered. */
   const Sound = (() => {
     const AC = window.AudioContext || window.webkitAudioContext;
-    let ctx = null, master, music, amb, rumble, wind, echo, tone, noiseBuf;
+    let ctx = null, master, music, amb, fx, tone, verb, delay, noiseBuf, rumble, wind;
     let enabled = store.get("zh-sound") !== "off";
-    let ambOn = false, musicOn = false, scene = "gate", wanted = "city", timers = [];
-    const BED = .55, LIFT = 1;              // the music leads; the course sounds sit underneath
-
+    let ambOn = false, musicOn = false, scene = "gate", wanted = "city", pending = null, timers = [];
+    const BPM = 80, BEAT = 60 / BPM, BAR = BEAT * 4;
+    const BED = .6, LIFT = 1;
+    const C9 = [130.81, 196, 246.94, 293.66, 329.63], Am9 = [110, 164.81, 196, 246.94, 261.63],
+      F9 = [87.31, 130.81, 164.81, 196, 220], G69 = [98, 146.83, 164.81, 220, 246.94],
+      Fadd9 = [87.31, 130.81, 174.61, 220, 261.63], Dm9 = [73.42, 130.81, 174.61, 220, 261.63];
     const SCENES = {
-      city: { chords: [[55, 82.41, 110, 130.81], [49, 73.42, 98, 116.54]], len: 9, bright: 700, plucks: 0, birds: 0, rumble: .07 },
-      dream: { chords: [[130.81, 196, 246.94, 293.66, 329.63], [174.61, 220, 261.63, 329.63, 392], [146.83, 220, 261.63, 293.66, 369.99], [196, 246.94, 293.66, 369.99, 440]], len: 6, bright: 3200, plucks: .35, birds: 1, rumble: 0 },
-      course: { chords: [[130.81, 196, 246.94, 293.66, 329.63], [110, 164.81, 196, 246.94, 261.63], [87.31, 130.81, 164.81, 196, 220], [98, 146.83, 164.81, 220, 246.94]], len: 7, bright: 2400, plucks: .7, birds: 1, rumble: 0 },
-      after: { chords: [[87.31, 130.81, 174.61, 220, 261.63], [130.81, 164.81, 196, 246.94, 329.63], [110, 164.81, 220, 261.63, 329.63], [98, 146.83, 196, 246.94, 293.66]], len: 8, bright: 1800, plucks: .45, birds: .5, rumble: 0 },
+      city: { prog: [[55, 82.41, 110, 130.81], [49, 73.42, 98, 116.54]], bars: 2, bright: 800, arp: "none", rumble: .07 },
+      dream: { prog: [C9, F9, Am9, G69], bars: 1, bright: 3600, arp: "rise", rumble: 0, cut: true },
+      course: { prog: [C9, Am9, F9, G69], bars: 2, bright: 2600, arp: "sparse", rumble: 0 },
+      after: { prog: [Fadd9, C9, Dm9, G69], bars: 2, bright: 2000, arp: "slow", rumble: 0 },
     };
-    const NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
 
+    function impulse(sec) {                  // a soft hall: decaying stereo noise
+      const len = ctx.sampleRate * sec, b = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+      return b;
+    }
     function ensure() {
       if (!AC) return null;
       if (!ctx) {
         ctx = new AC();
-        master = ctx.createGain(); master.gain.value = enabled ? 1 : 0; master.connect(ctx.destination);
-        tone = ctx.createBiquadFilter(); tone.type = "lowpass"; tone.frequency.value = 2400; tone.connect(master);
+        const comp = ctx.createDynamicsCompressor();      // glue the mix, keep peaks safe on phone speakers
+        comp.threshold.value = -20; comp.knee.value = 12; comp.ratio.value = 3; comp.attack.value = .01; comp.release.value = .3;
+        master = ctx.createGain(); master.gain.value = enabled ? .9 : 0;
+        comp.connect(master); master.connect(ctx.destination);
+        verb = ctx.createConvolver(); verb.buffer = impulse(2.8);
+        const verbOut = ctx.createGain(); verbOut.gain.value = .55; verb.connect(verbOut); verbOut.connect(comp);
+        tone = ctx.createBiquadFilter(); tone.type = "lowpass"; tone.frequency.value = 2400; tone.Q.value = .4; tone.connect(comp);
         music = ctx.createGain(); music.gain.value = 0; music.connect(tone);
-        amb = ctx.createGain(); amb.gain.value = .5; amb.connect(master);
-        echo = ctx.createDelay(1); echo.delayTime.value = .42;
-        const fb = ctx.createGain(); fb.gain.value = .34; const wet = ctx.createGain(); wet.gain.value = .35;
-        echo.connect(fb); fb.connect(echo); echo.connect(wet); wet.connect(tone);
+        const send = ctx.createGain(); send.gain.value = .45; music.connect(send); send.connect(verb);
+        delay = ctx.createDelay(2); delay.delayTime.value = BEAT * .75;              // dotted eighth, in tempo
+        const fb = ctx.createGain(); fb.gain.value = .28; const dOut = ctx.createGain(); dOut.gain.value = .3;
+        delay.connect(fb); fb.connect(delay); delay.connect(dOut); dOut.connect(tone);
+        amb = ctx.createGain(); amb.gain.value = .45; amb.connect(comp);
+        fx = ctx.createGain(); fx.gain.value = .85; fx.connect(comp);              // putt sounds
+        const fxVerb = ctx.createGain(); fxVerb.gain.value = .12; fx.connect(fxVerb); fxVerb.connect(verb);
         noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
         const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       }
@@ -250,13 +268,13 @@
     }
     const later = (fn, ms) => timers.push(setTimeout(fn, ms));
     function noise(loop) { const s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = !!loop; return s; }
-    function blip(type, f0, f1, t, dur, peak, out = master) {
+    function blip(type, f0, f1, t, dur, peak, out = fx) {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
       g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
       o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + .05);
     }
-    function burst(t, dur, freq, q, peak, out = master) {
+    function burst(t, dur, freq, q, peak, out = fx) {
       const n = noise(), f = ctx.createBiquadFilter(), g = ctx.createGain();
       f.type = "bandpass"; f.frequency.value = freq; f.Q.value = q;
       g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
@@ -264,7 +282,7 @@
     }
 
     /* ---------- the course around you ---------- */
-    function bird(t, out = amb, vol = .02) {
+    function bird(t, vol) {
       const base = 2500 + Math.random() * 1600, n = 2 + (Math.random() * 4 | 0);
       for (let i = 0; i < n; i++) {
         const s = t + i * (.08 + Math.random() * .06), o = ctx.createOscillator(), g = ctx.createGain();
@@ -272,170 +290,187 @@
         o.frequency.exponentialRampToValueAtTime(base * (1.25 + Math.random() * .35), s + .045);
         o.frequency.exponentialRampToValueAtTime(base * .88, s + .09);
         g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(vol, s + .01); g.gain.exponentialRampToValueAtTime(.0001, s + .1);
-        o.connect(g); g.connect(out); o.start(s); o.stop(s + .12);
+        o.connect(g); g.connect(amb); o.start(s); o.stop(s + .12);
       }
     }
-    function startAmbience() {                 // birds and a breeze, from the first touch on the green
+    function startAmbience() {
       if (ambOn || !ensure()) return; ambOn = true;
       const n = noise(true), f = ctx.createBiquadFilter(), lfo = ctx.createOscillator(), depth = ctx.createGain();
       wind = ctx.createGain(); wind.gain.value = 0;
       f.type = "bandpass"; f.frequency.value = 520; f.Q.value = .6;
       lfo.frequency.value = .09; depth.gain.value = 260; lfo.connect(depth); depth.connect(f.frequency); lfo.start();
       n.connect(f); f.connect(wind); wind.connect(amb); n.start();
-      wind.gain.setTargetAtTime(.025, ctx.currentTime, 1.2);
-      const chirp = () => { if (!ambOn) return; if (scene !== "city") bird(ctx.currentTime + .05, amb, scene === "gate" ? .024 : .012); later(chirp, 2200 + Math.random() * 5200); };
+      wind.gain.setTargetAtTime(.02, ctx.currentTime, 1.2);
+      const chirp = () => { if (!ambOn) return; if (scene !== "city") bird(ctx.currentTime + .05, scene === "gate" ? .03 : .012); later(chirp, 2400 + Math.random() * 5600); };
       later(chirp, 600);
-      // distant traffic for the city scene (silent until then)
       const r = noise(true), rf = ctx.createBiquadFilter();
       rumble = ctx.createGain(); rumble.gain.value = 0;
-      rf.type = "lowpass"; rf.frequency.value = 240; r.connect(rf); rf.connect(rumble); rumble.connect(amb); r.start();
+      rf.type = "lowpass"; rf.frequency.value = 220; r.connect(rf); rf.connect(rumble); rumble.connect(amb); r.start();
     }
-    function horn(t) {                         // a far-off car horn, muffled by distance
+    function horn(t) {
       [392, 466].forEach((f, i) => {
         const o = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
-        o.type = "square"; o.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = 900;
-        const s = t + i * .02, len = .22 + Math.random() * .25;
-        g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(.012, s + .03); g.gain.exponentialRampToValueAtTime(.0001, s + len);
+        o.type = "square"; o.frequency.value = f; lp.type = "lowpass"; lp.frequency.value = 800;
+        const s = t + i * .02, len = .22 + Math.random() * .2;
+        g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(.006, s + .03); g.gain.exponentialRampToValueAtTime(.0001, s + len);
         o.connect(lp); lp.connect(g); g.connect(amb); o.start(s); o.stop(s + len + .05);
       });
     }
 
     /* ---------- the putt ---------- */
-    function tick() {                          // the putter face meets the ball: a soft, solid "tock"
+    function tick() {
       if (!ensure()) return; const t = ctx.currentTime;
       blip("sine", 1350, 760, t, .09, .26); blip("triangle", 2600, 1800, t, .03, .1);
-      blip("sine", 320, 180, t, .06, .14); burst(t, .025, 4200, 1.5, .18);
+      blip("sine", 320, 180, t, .06, .14); burst(t, .025, 4200, 1.5, .16);
     }
-    function roll(dur) {                       // the ball on bent grass: a hush that fades as it slows
+    function roll(dur) {
       if (!ensure()) return; const t = ctx.currentTime;
       const n = noise(true), f = ctx.createBiquadFilter(), g = ctx.createGain();
-      f.type = "lowpass"; f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(260, t + dur);
-      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.045, t + .06); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-      n.connect(f); f.connect(g); g.connect(master); n.start(t, Math.random()); n.stop(t + dur + .05);
+      f.type = "lowpass"; f.frequency.setValueAtTime(800, t); f.frequency.exponentialRampToValueAtTime(240, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.04, t + .06); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      n.connect(f); f.connect(g); g.connect(fx); n.start(t, Math.random()); n.stop(t + dur + .05);
     }
-    function drop() {                          // the sweetest sound in golf: in, rattle, settle
+    function drop() {
       if (!ensure()) return; const t = ctx.currentTime;
-      blip("sine", 260, 96, t, .17, .55); burst(t + .005, .05, 1500, 3, .26);
-      [[.085, .32], [.15, .18], [.2, .1], [.235, .05]].forEach(([d, v]) => { blip("sine", 190 - d * 300, 80, t + d, .09, v); burst(t + d, .03, 1900, 4, v * .5); });
+      blip("sine", 260, 96, t, .17, .5); burst(t + .005, .05, 1500, 3, .2);
+      [[.085, .3], [.15, .17], [.2, .09], [.235, .045]].forEach(([d, v]) => { blip("sine", 190 - d * 300, 80, t + d, .09, v); burst(t + d, .03, 1900, 4, v * .45); });
       const touched = !navigator.userActivation || navigator.userActivation.hasBeenActive;
       if (navigator.vibrate && touched) try { navigator.vibrate([18, 60, 12]); } catch (e) { /* no haptics */ }
     }
-    function applause() {                      // a small group's polite golf clap
-      if (!ensure()) return; const t0 = ctx.currentTime + .45, len = 2.6;
-      for (let i = 0; i < 46; i++) {
+    function applause() {
+      if (!ensure()) return; const t0 = ctx.currentTime + .45, len = 2.4;
+      for (let i = 0; i < 40; i++) {
         const k = Math.pow(Math.random(), 1.6), s = t0 + k * len;
-        burst(s, .03 + Math.random() * .02, 1100 + Math.random() * 1500, 1.2, .035 * (1 - k * .85));
+        burst(s, .03 + Math.random() * .02, 1100 + Math.random() * 1500, 1.2, .03 * (1 - k * .85));
       }
     }
+    function whoosh() {
+      if (!ensure()) return; const t = ctx.currentTime;
+      const n = noise(true), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      f.type = "bandpass"; f.Q.value = .8; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2400, t + .9);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.035, t + .45); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2);
+      n.connect(f); f.connect(g); g.connect(fx); n.start(t, Math.random()); n.stop(t + 1.3);
+    }
 
-    /* ---------- the score ---------- */
-    let lastChord = null;
-    function pad(chord, t, len, bright) {
-      const bus = ctx.createGain(); bus.gain.value = 1; bus.connect(music); lastChord = bus;
+    /* ---------- the instruments ---------- */
+    let lastPad = null;
+    function pad(chord, t, len) {
+      if (lastPad) { lastPad.gain.setValueAtTime(lastPad.gain.value, t); lastPad.gain.linearRampToValueAtTime(.0001, t + 1.6); }  // crossfade chords
+      const bus = ctx.createGain(); bus.gain.value = 1; bus.connect(music); lastPad = bus;
       chord.forEach((f, i) => {
-        [0, 5].forEach((cents) => {
+        [0, 6].forEach((cents) => {
           const o = ctx.createOscillator(), g = ctx.createGain();
-          o.type = cents ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = cents + (i % 2 ? -3 : 3);
-          g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.021, t + 2.4); g.gain.linearRampToValueAtTime(.0001, t + len + 2.6);
-          o.connect(g); g.connect(bus); o.start(t); o.stop(t + len + 2.7);
+          o.type = cents ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = cents + (i % 2 ? -4 : 4);
+          g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.019, t + 1.4); g.gain.setValueAtTime(.019, t + len);
+          g.gain.linearRampToValueAtTime(.0001, t + len + 2.2);
+          o.connect(g); g.connect(bus); o.start(t); o.stop(t + len + 2.3);
         });
       });
-      tone.frequency.setTargetAtTime(bright, t, 1.5);
     }
-    function pluck(t, vol = .05) {
-      const f = NOTES[Math.random() * NOTES.length | 0], o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
-      o.type = "sine"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f * 2;
-      const g2 = ctx.createGain(); g2.gain.value = .25;
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + 2);
-      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(music); g.connect(echo);
-      o.start(t); o2.start(t); o.stop(t + 2.1); o2.stop(t + 2.1);
+    function bass(f, t, len) {               // a warm sine on the downbeat
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.11, t + .04); g.gain.exponentialRampToValueAtTime(.03, t + len * .6); g.gain.exponentialRampToValueAtTime(.0001, t + len);
+      o.connect(g); g.connect(music); o.start(t); o.stop(t + len + .05);
     }
-    let step = 0, chordTimer = null, pulseFn = null;
-    function pulse() {                        // the beat the dream film cuts on
-      if (scene !== "dream" || !pulseFn) return;
-      pulseFn(); pluck(ctx.currentTime + .03, .06);
+    function note(f, t, vol, len = 1.8, toDelay = true) {   // a soft piano-like bell
+      const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), g2 = ctx.createGain();
+      o.type = "sine"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f * 2.005; g2.gain.value = .22;
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + len);
+      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(music); if (toDelay) g.connect(delay);
+      o.start(t); o2.start(t); o.stop(t + len + .05); o2.stop(t + len + .05);
     }
-    function nextChord() {
-      if (!musicOn) return;
-      const S = SCENES[scene] || SCENES.course;
-      pad(S.chords[step++ % S.chords.length], ctx.currentTime + .05, S.len, S.bright);
-      if (scene === "dream") { pulse(); later(pulse, S.len * 500); }
-      clearTimeout(chordTimer); chordTimer = setTimeout(nextChord, S.len * 1000);
+
+    /* ---------- the sequencer ---------- */
+    let clock = null, nextT = 0, beat = 0, barInChord = 0, chordIx = 0, chord = C9, barFn = null;
+    const tones = (c) => c.slice(1).map((f) => f * 2);      // the chord's colour tones, an octave up
+    function onBeat(n, t) {
+      const S = SCENES[scene], b = n % 4;
+      if (b === 0) {
+        if (pending) {                                     // scenes change on the bar
+          scene = pending; pending = null; applyScene(t); barInChord = 0; chordIx = 0;
+          note(SCENES[scene].prog[0][2] * 4, t, .045, 2.6);   // a bell marks the new chapter
+        }
+        const S2 = SCENES[scene];
+        if (barInChord % S2.bars === 0) { chord = S2.prog[chordIx++ % S2.prog.length]; pad(chord, t, S2.bars * BAR); }
+        barInChord++;
+        bass(chord[0] < 80 ? chord[0] : chord[0] / 2, t, BAR * .95);
+        if (S2.cut && barFn) barFn(t + BAR);                // tell the film where the next downbeat is
+        if (scene === "city" && Math.random() < .35) horn(t + BEAT * (1 + (Math.random() * 2 | 0)));
+      }
+      const tt = tones(chord);
+      if (S.arp === "rise") {                              // eighth-note arpeggio climbing through the bar
+        [0, .5].forEach((h, k) => { const i = b * 2 + k; if (i % 2 === 0 || Math.random() < .5) note(tt[i % tt.length] * (i >= tt.length ? 2 : 1), t + h * BEAT, .03, 1.4); });
+      } else if (S.arp === "sparse") {
+        if ((b === 0 || b === 2) && Math.random() < .55) note(tt[(Math.random() * tt.length) | 0] * 2, t, .03, 2);
+      } else if (S.arp === "slow") {
+        if (b === 0 && Math.random() < .7) note(tt[(Math.random() * tt.length) | 0] * 2, t, .028, 2.4);
+      }
     }
-    function applyScene() {
+    function schedule() {
+      while (nextT < ctx.currentTime + .2) { onBeat(beat, nextT); nextT += BEAT; beat++; }
+    }
+    function applyScene(t = ctx.currentTime) {
       const S = SCENES[scene];
-      if (rumble) rumble.gain.setTargetAtTime(S.rumble, ctx.currentTime, 1);
-      if (wind) wind.gain.setTargetAtTime(scene === "city" ? 0 : .012, ctx.currentTime, 1.2);
+      if (rumble) rumble.gain.setTargetAtTime(S.rumble, t, 1);
+      if (wind) wind.gain.setTargetAtTime(scene === "city" ? 0 : .008, t, 1.2);
+      tone.frequency.setTargetAtTime(S.bright, t, 1.2);
     }
     function startMusic() {
       if (musicOn || !ensure()) return; musicOn = true;
       startAmbience();
       scene = wanted; applyScene();
-      nextChord();
-      const plucks = () => { if (!musicOn) return; const S = SCENES[scene] || SCENES.course; if (Math.random() < S.plucks) pluck(ctx.currentTime + .05); later(plucks, 1400 + Math.random() * 1800); };
-      later(plucks, 1500);
-      const horns = () => { if (!musicOn) return; if (scene === "city") horn(ctx.currentTime + .05); later(horns, 4000 + Math.random() * 6000); };
-      later(horns, 2500);
+      nextT = ctx.currentTime + .12; beat = 0; barInChord = 0; chordIx = 0;
+      clearInterval(clock); clock = setInterval(schedule, 25); schedule();
       music.gain.setTargetAtTime(BED, ctx.currentTime, 1.5);
     }
     function setScene(name) {
       if (!SCENES[name]) return;
-      wanted = name;                           // until the putt is sunk, the gate keeps its own sound
-      if (!musicOn || name === scene) return;
-      scene = name; applyScene();
-      if (lastChord) lastChord.gain.setTargetAtTime(.0001, ctx.currentTime, .6);   // let the old chord go
-      bell(ctx.currentTime + .05, SCENES[name].chords[0][2] * 4, .05);
-      step = 0; nextChord();                   // the new mood arrives now, not at the next bar
-    }
-    function whoosh() {                        // air rushing past as the green opens into the story
-      if (!ensure()) return; const t = ctx.currentTime;
-      const n = noise(true), f = ctx.createBiquadFilter(), g = ctx.createGain();
-      f.type = "bandpass"; f.Q.value = .8; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2600, t + .9);
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.04, t + .45); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2);
-      n.connect(f); f.connect(g); g.connect(master); n.start(t, Math.random()); n.stop(t + 1.3);
-    }
-    function bell(t, f, vol) {               // a soft bell: sine + quiet octave, long tail through the echo
-      const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), g2 = ctx.createGain();
-      o.type = "sine"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f * 2.01; g2.gain.value = .3;
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + 2.4);
-      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(music); g.connect(echo);
-      o.start(t); o2.start(t); o.stop(t + 2.5); o2.stop(t + 2.5);
-    }
-    // words arriving on screen: a gentle rising run of notes that follows the text
-    let lastText = 0;
-    function words(count, gap = .06) {
-      if (!musicOn || !enabled) return;
-      const now = performance.now(); if (now - lastText < 500) return; lastText = now;
-      const t0 = ctx.currentTime + .05, notes = Math.min(7, Math.max(2, Math.round(count / 3)));
-      for (let i = 0; i < notes; i++) bell(t0 + i * (count * gap / notes), NOTES[i % NOTES.length] * (i >= NOTES.length ? 2 : 1), .028);
-    }
-    function thud() {                        // the city words land like a door closing
-      if (!musicOn || !enabled) return; const t = ctx.currentTime;
-      blip("sine", 120, 55, t, .25, .12, music);
-    }
-    // the scroll is an instrument: faster scrolling brightens and lifts the music
-    let settle = null, lastY = scrollY, lastT = performance.now();
-    function scrolling() {
+      wanted = name;
       if (!musicOn) return;
-      const now = performance.now(), v = Math.abs(scrollY - lastY) / Math.max(16, now - lastT) * 1000; // px per second
+      if (name !== scene) pending = name;
+    }
+    function quant(div = 2) {                // the next eighth note on the grid
+      const step = BEAT / div, since = ctx.currentTime - (nextT - BEAT);
+      return ctx.currentTime + (step - (since % step)) % step + .01;
+    }
+    let lastText = 0;
+    function words(count) {                   // text arriving: a short rising phrase, in key and in time
+      if (!musicOn || !enabled) return;
+      const now = performance.now(); if (now - lastText < 600) return; lastText = now;
+      const tt = tones(chord), notes = Math.min(5, Math.max(2, Math.round(count / 4))), t0 = quant(2);
+      for (let i = 0; i < notes; i++) note(tt[i % tt.length] * 2, t0 + i * BEAT / 2, .026, 1.6);
+    }
+    function thud() {
+      if (!musicOn || !enabled) return;
+      blip("sine", 110, 55, quant(4), .3, .1, music);
+    }
+    let settle = null, lastY = scrollY, lastT = performance.now();
+    function scrolling() {                    // the scroll is an instrument: speed lifts and brightens the score
+      if (!musicOn) return;
+      const now = performance.now(), v = Math.abs(scrollY - lastY) / Math.max(16, now - lastT) * 1000;
       lastY = scrollY; lastT = now;
-      const S = SCENES[scene] || SCENES.course;
-      music.gain.setTargetAtTime(LIFT, ctx.currentTime, .3);
-      tone.frequency.setTargetAtTime(Math.min(6000, S.bright + v * 1.6), ctx.currentTime, .25);
+      const S = SCENES[scene];
+      music.gain.setTargetAtTime(LIFT, ctx.currentTime, .4);
+      tone.frequency.setTargetAtTime(Math.min(6000, S.bright + v * 1.4), ctx.currentTime, .3);
       clearTimeout(settle);
       settle = setTimeout(() => {
-        music.gain.setTargetAtTime(BED, ctx.currentTime, 1.4);
-        tone.frequency.setTargetAtTime(S.bright, ctx.currentTime, 1.2);
-      }, 700);
+        music.gain.setTargetAtTime(BED, ctx.currentTime, 1.5);
+        tone.frequency.setTargetAtTime(S.bright, ctx.currentTime, 1.3);
+      }, 800);
     }
     function setEnabled(v) {
       enabled = v; store.set("zh-sound", v ? "on" : "off");
-      if (ensure()) master.gain.setTargetAtTime(v ? 1 : 0, ctx.currentTime, .15);
+      if (ensure()) master.gain.setTargetAtTime(v ? .9 : 0, ctx.currentTime, .15);
       if (v) startMusic();
     }
     document.addEventListener("visibilitychange", () => { if (!ctx) return; document.hidden ? ctx.suspend() : ctx.resume(); });
-    return { ensure, startAmbience, tick, roll, drop, applause, whoosh, startMusic, setScene, scrolling, setEnabled, words, thud,
-      onPulse(fn) { pulseFn = fn; }, get playing() { return musicOn && enabled; }, get enabled() { return enabled; } };
+    return {
+      ensure, startAmbience, tick, roll, drop, applause, whoosh, startMusic, setScene, scrolling, setEnabled, words, thud,
+      // the film asks to be told, one bar ahead, when the next downbeat will sound (in ms from now)
+      onBar(fn) { barFn = (t) => fn(Math.max(0, (t - ctx.currentTime + (ctx.outputLatency || ctx.baseLatency || 0)) * 1000)); },
+      get bar() { return BAR; }, get playing() { return musicOn && enabled && !!ctx && ctx.state === "running"; }, get enabled() { return enabled; },
+    };
   })();
 
   function soundScenes() {
@@ -649,49 +684,57 @@
     }), { threshold: .12 });
     $$(".rv").forEach((el) => io.observe(el));
 
-    // dream reel: an edit of the film in HD. Two players take turns — while one shows a shot,
-    // the other is already waiting on the next, so every cut is clean (no buffering pause).
-    // When the music is on, the cuts land on its beat; otherwise the reel keeps its own time.
+    // dream reel — edited like a film, not a slideshow:
+    //  · the next shot starts playing hidden 1.4 s early, so it is already moving when it appears
+    //  · a long eased dissolve (1.4 s) is centred on the music's downbeat
+    //  · the outgoing shot keeps moving through the dissolve; it only stops once it is invisible
+    //  · a dissolve only begins once the incoming shot has really started playing — never a frozen frame
+    //  · a slow pull-out runs unbroken on each shot (no zoom snaps)
     const reel = $(".reel");
     if (reel && C.dream.shots) {
-      const shots = C.dream.shots, n = shots.length, every = (C.dream.cut || 3) * 1000;
+      const shots = C.dream.shots, n = shots.length, FADE = 1400, PRE = 1400;
       const conn = navigator.connection || {};
       const lowMem = navigator.deviceMemory && navigator.deviceMemory < 4;
       const q = lowMem || conn.saveData || /(^|-)2g|3g/.test(conn.effectiveType || "") ? "720p" : "1080p";
-      let [cur, nxt] = $$("video", reel), next = 1, live = false, loaded = false, last = 0, clock = null;
+      let [cur, nxt] = $$("video", reel), next = 1, live = false, loaded = false, planned = false, own = null;
       const play = (v) => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
       function cue(v, shot) {
-        v.dataset.end = shot.t + (C.dream.cut || 3) * (shot.rate || 1) - .05;
+        v.classList.remove("run");
         const go = () => { try { v.currentTime = shot.t; } catch (e) { /* not ready */ } v.playbackRate = shot.rate || 1; };
         v.readyState >= 1 ? go() : v.addEventListener("loadedmetadata", go, { once: true });
       }
-      // never run past the end of a shot into the film's own edit: hold the last frame instead
-      $$("video", reel).forEach((v) => v.addEventListener("timeupdate", () => { if (v.currentTime > +v.dataset.end) v.pause(); }));
-      function cut() {
-        if (!live || performance.now() - last < every * .7) return;
-        last = performance.now();
-        nxt.playbackRate = shots[next].rate || 1; play(nxt);
-        nxt.classList.add("show"); cur.classList.remove("show");
-        const old = cur; cur = nxt; nxt = old;
-        next = (next + 1) % n;
-        setTimeout(() => { old.pause(); cue(old, shots[next]); }, 900);
+      function rolling(v, since) { return !v.paused && v.readyState >= 3 && v.currentTime > since + .04; }
+      // plan a dissolve whose midpoint lands `ms` from now
+      function plan(ms) {
+        if (!live || planned) return;
+        planned = true;
+        const shot = shots[next], startAt = shot.t;
+        setTimeout(() => { if (!live) return; nxt.playbackRate = shot.rate || 1; nxt.classList.add("run"); play(nxt); }, Math.max(0, ms - PRE));
+        const dissolve = (tries) => {
+          if (!live) { planned = false; return; }
+          if (!rolling(nxt, startAt) && tries < 6) { setTimeout(() => dissolve(tries + 1), 250); return; }   // wait for real motion
+          nxt.classList.add("show"); cur.classList.remove("show");
+          const old = cur; cur = nxt; nxt = old;
+          next = (next + 1) % n;
+          planned = false;
+          setTimeout(() => { old.pause(); cue(old, shots[next]); }, FADE + 200);
+        };
+        setTimeout(() => dissolve(0), Math.max(0, ms - FADE / 2));
       }
-      Sound.onPulse(cut);
+      Sound.onBar(plan);
       function start() {
         if (!loaded) {
           loaded = true;
           [cur, nxt].forEach((v) => { v.preload = "auto"; v.src = C.dream.film(q); });
           cue(cur, shots[0]); cue(nxt, shots[1]);
         }
-        live = true; play(cur); cur.classList.add("show"); last = performance.now();
-        clearInterval(clock); clock = setInterval(() => { if (!Sound.playing) cut(); }, every);
+        live = true; cur.classList.add("run", "show"); play(cur);
+        // when the music is off, the reel keeps the same bar length on its own clock
+        clearInterval(own); own = setInterval(() => { if (!Sound.playing) plan(PRE + 200); }, Sound.bar * 1000);
       }
-      function stop() { live = false; clearInterval(clock); $$("video", reel).forEach((v) => v.pause()); }
+      function stop() { live = false; planned = false; clearInterval(own); $$("video", reel).forEach((v) => v.pause()); }
       if (!reduce) new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop()), { rootMargin: "60% 0px" }).observe(dream);
     }
-
-    // while the hole guide fills the screen, the dock steps aside so every line is visible
-    new IntersectionObserver(([e]) => document.body.classList.toggle("in-holes", e.isIntersecting), { rootMargin: "-50% 0px -50% 0px" }).observe($("#holes"));
 
     // in their words: each quote arrives word by word, with notes; the carousel turns itself
     const car = $(".tcar");
