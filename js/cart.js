@@ -523,7 +523,23 @@
       if (v) startMusic();
     }
     document.addEventListener("visibilitychange", () => { if (!ctx) return; document.hidden ? ctx.suspend() : ctx.resume(); });
+    const RUN = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98];   // C major pentatonic, two octaves
+    let lastSel = 0;
+    function select(i) {
+      if (!enabled || !ensure()) return;
+      const now = performance.now(); if (now - lastSel < 70) return; lastSel = now;
+      const t = ctx.currentTime;
+      blip("sine", 1700, 950, t, .045, .07); blip("sine", 420, 240, t, .05, .05);       // the ball clicks
+      const f = RUN[Math.min(RUN.length - 1, Math.round(i * (RUN.length - 1) / 17))];   // and the note climbs with the hole
+      [[f, .05], [f * 2.005, .012]].forEach(([fr, v]) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.value = fr;
+        g.gain.setValueAtTime(.0001, t + .02); g.gain.exponentialRampToValueAtTime(v, t + .03); g.gain.exponentialRampToValueAtTime(.0001, t + 1.1);
+        o.connect(g); g.connect(fx); o.start(t + .02); o.stop(t + 1.2);
+      });
+    }
     return {
+      select,
       ensure, startAmbience, tick, roll, drop, applause, whoosh, startMusic, setScene, scrolling, setEnabled, words, thud, build, bloom,
       // the film asks to be told, one bar ahead, when the next downbeat will sound (in ms from now)
       onBar(fn) { barFn = (t) => fn(Math.max(0, (t - ctx.currentTime + (ctx.outputLatency || ctx.baseLatency || 0)) * 1000)); },
@@ -708,7 +724,7 @@
 
   function holes() {
     const card = $(".hole"), btns = $$("[data-hole]");
-    let cur = Math.min(17, Math.max(0, +(store.get("zh-hole") || 0)));
+    let cur = 0;                                   // always start the round on hole 1
     function show(i) {
       cur = (i + 18) % 18;
       const x = C.holes[cur], s = (C.story || [])[cur] || {};
@@ -731,11 +747,10 @@
       btns.forEach((b, k) => { b.classList.toggle("on", k === cur); b.classList.toggle("seen", k < cur); b.setAttribute("aria-selected", k === cur); });
       const active = btns[cur], nav = $(".hole-nav");
       nav.scrollTo({ left: active.offsetLeft - nav.clientWidth / 2 + active.offsetWidth / 2, behavior: "smooth" });
-      store.set("zh-hole", cur);
       // warm up the photos either side so swiping feels instant
       [cur + 1, cur - 1].forEach((k) => { const im = new Image(); im.src = photo((k + 18) % 18); });
     }
-    btns.forEach((b) => b.addEventListener("click", () => show(+b.dataset.hole)));
+    btns.forEach((b) => b.addEventListener("click", () => { show(+b.dataset.hole); Sound.select(cur); }));
     // swipe the hole card left/right to change hole
     let sx = null, sy = 0;
     card.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
@@ -743,10 +758,10 @@
       if (sx === null) return;
       const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
       sx = null;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(cur + (dx < 0 ? 1 : -1));
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { show(cur + (dx < 0 ? 1 : -1)); Sound.select(cur); }
     });
     $$("[data-step]").forEach((b) => b.addEventListener("click", () => {
-      show(cur + +b.dataset.step);
+      show(cur + +b.dataset.step); Sound.select(cur);
       card.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }));
     show(cur);
