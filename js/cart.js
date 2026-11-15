@@ -56,8 +56,8 @@
     <!-- 2. The switch: the dream of Zion Hills -->
     <section class="dream" aria-label="Zion Hills">
       <div class="stage">
-        ${C.dream.video
-          ? `<video class="dream-photo" muted playsinline loop preload="none" poster="${esc(C.dream.image)}" aria-label="A drone flight over the Zion Hills course"></video>`
+        ${C.dream.shots
+          ? `<div class="reel" aria-label="Scenes from Zion Hills"><img class="reel-poster" src="${esc(C.dream.image)}" alt="" loading="lazy"><video muted playsinline preload="none"></video><video muted playsinline preload="none"></video></div>`
           : `<img class="dream-photo" src="${esc(C.dream.image)}" alt="The Zion Hills course" loading="lazy">`}
         <div class="dream-wash"></div>
         ${petals(reduce ? 0 : 14)}
@@ -219,12 +219,12 @@
     const AC = window.AudioContext || window.webkitAudioContext;
     let ctx = null, master, music, amb, rumble, wind, echo, tone, noiseBuf;
     let enabled = store.get("zh-sound") !== "off";
-    let ambOn = false, musicOn = false, scene = "gate", timers = [];
-    const BED = .34, LIFT = .95;
+    let ambOn = false, musicOn = false, scene = "gate", wanted = "city", timers = [];
+    const BED = .34, LIFT = .8;
 
     const SCENES = {
       city: { chords: [[55, 82.41, 110, 130.81], [49, 73.42, 98, 116.54]], len: 9, bright: 700, plucks: 0, birds: 0, rumble: .14 },
-      dream: { chords: [[130.81, 196, 246.94, 293.66, 329.63], [174.61, 220, 261.63, 329.63, 392], [146.83, 220, 261.63, 293.66, 369.99], [196, 246.94, 293.66, 369.99, 440]], len: 6, bright: 3200, plucks: 1, birds: 1, rumble: 0 },
+      dream: { chords: [[130.81, 196, 246.94, 293.66, 329.63], [174.61, 220, 261.63, 329.63, 392], [146.83, 220, 261.63, 293.66, 369.99], [196, 246.94, 293.66, 369.99, 440]], len: 6, bright: 3200, plucks: .35, birds: 1, rumble: 0 },
       course: { chords: [[130.81, 196, 246.94, 293.66, 329.63], [110, 164.81, 196, 246.94, 261.63], [87.31, 130.81, 164.81, 196, 220], [98, 146.83, 164.81, 220, 246.94]], len: 7, bright: 2400, plucks: .7, birds: 1, rumble: 0 },
       after: { chords: [[87.31, 130.81, 174.61, 220, 261.63], [130.81, 164.81, 196, 246.94, 329.63], [110, 164.81, 220, 261.63, 329.63], [98, 146.83, 196, 246.94, 293.66]], len: 8, bright: 1800, plucks: .45, birds: .5, rumble: 0 },
     };
@@ -316,7 +316,8 @@
       if (!ensure()) return; const t = ctx.currentTime;
       blip("sine", 260, 96, t, .17, .55); burst(t + .005, .05, 1500, 3, .26);
       [[.085, .32], [.15, .18], [.2, .1], [.235, .05]].forEach(([d, v]) => { blip("sine", 190 - d * 300, 80, t + d, .09, v); burst(t + d, .03, 1900, 4, v * .5); });
-      if (navigator.vibrate) try { navigator.vibrate([18, 60, 12]); } catch (e) { /* no haptics */ }
+      const touched = !navigator.userActivation || navigator.userActivation.hasBeenActive;
+      if (navigator.vibrate && touched) try { navigator.vibrate([18, 60, 12]); } catch (e) { /* no haptics */ }
     }
     function applause() {                      // a small group's polite golf clap
       if (!ensure()) return; const t0 = ctx.currentTime + .45, len = 2.6;
@@ -327,35 +328,48 @@
     }
 
     /* ---------- the score ---------- */
+    let lastChord = null;
     function pad(chord, t, len, bright) {
+      const bus = ctx.createGain(); bus.gain.value = 1; bus.connect(music); lastChord = bus;
       chord.forEach((f, i) => {
         [0, 5].forEach((cents) => {
           const o = ctx.createOscillator(), g = ctx.createGain();
           o.type = cents ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = cents + (i % 2 ? -3 : 3);
           g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.021, t + 2.4); g.gain.linearRampToValueAtTime(.0001, t + len + 2.6);
-          o.connect(g); g.connect(music); o.start(t); o.stop(t + len + 2.7);
+          o.connect(g); g.connect(bus); o.start(t); o.stop(t + len + 2.7);
         });
       });
       tone.frequency.setTargetAtTime(bright, t, 1.5);
     }
-    function pluck(t) {
+    function pluck(t, vol = .05) {
       const f = NOTES[Math.random() * NOTES.length | 0], o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
       o.type = "sine"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f * 2;
       const g2 = ctx.createGain(); g2.gain.value = .25;
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + 2);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + 2);
       o.connect(g); o2.connect(g2); g2.connect(g); g.connect(music); g.connect(echo);
       o.start(t); o2.start(t); o.stop(t + 2.1); o2.stop(t + 2.1);
     }
-    let step = 0, chordTimer = null;
+    let step = 0, chordTimer = null, pulseFn = null;
+    function pulse() {                        // the beat the dream film cuts on
+      if (scene !== "dream" || !pulseFn) return;
+      pulseFn(); pluck(ctx.currentTime + .03, .06);
+    }
     function nextChord() {
       if (!musicOn) return;
       const S = SCENES[scene] || SCENES.course;
       pad(S.chords[step++ % S.chords.length], ctx.currentTime + .05, S.len, S.bright);
+      if (scene === "dream") { pulse(); later(pulse, S.len * 500); }
       clearTimeout(chordTimer); chordTimer = setTimeout(nextChord, S.len * 1000);
+    }
+    function applyScene() {
+      const S = SCENES[scene];
+      if (rumble) rumble.gain.setTargetAtTime(S.rumble, ctx.currentTime, 1);
+      if (wind) wind.gain.setTargetAtTime(scene === "city" ? 0 : .035, ctx.currentTime, 1.2);
     }
     function startMusic() {
       if (musicOn || !ensure()) return; musicOn = true;
       startAmbience();
+      scene = wanted; applyScene();
       nextChord();
       const plucks = () => { if (!musicOn) return; const S = SCENES[scene] || SCENES.course; if (Math.random() < S.plucks) pluck(ctx.currentTime + .05); later(plucks, 1400 + Math.random() * 1800); };
       later(plucks, 1500);
@@ -364,13 +378,19 @@
       music.gain.setTargetAtTime(BED, ctx.currentTime, 1.5);
     }
     function setScene(name) {
-      if (!SCENES[name] || name === scene) return;
-      scene = name;
-      if (!ctx) return;
-      const S = SCENES[name];
-      if (rumble) rumble.gain.setTargetAtTime(S.rumble, ctx.currentTime, 1);
-      if (wind) wind.gain.setTargetAtTime(name === "city" ? 0 : .035, ctx.currentTime, 1.2);
-      if (musicOn) { step = 0; nextChord(); }  // the new mood arrives now, not at the next bar
+      if (!SCENES[name]) return;
+      wanted = name;                           // until the putt is sunk, the gate keeps its own sound
+      if (!musicOn || name === scene) return;
+      scene = name; applyScene();
+      if (lastChord) lastChord.gain.setTargetAtTime(.0001, ctx.currentTime, .6);   // let the old chord go
+      step = 0; nextChord();                   // the new mood arrives now, not at the next bar
+    }
+    function whoosh() {                        // air rushing past as the green opens into the story
+      if (!ensure()) return; const t = ctx.currentTime;
+      const n = noise(true), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      f.type = "bandpass"; f.Q.value = .8; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2600, t + .9);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.09, t + .45); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2);
+      n.connect(f); f.connect(g); g.connect(master); n.start(t, Math.random()); n.stop(t + 1.3);
     }
     let settle = null;
     function scrolling() {
@@ -385,7 +405,8 @@
       if (v) startMusic();
     }
     document.addEventListener("visibilitychange", () => { if (!ctx) return; document.hidden ? ctx.suspend() : ctx.resume(); });
-    return { ensure, startAmbience, tick, roll, drop, applause, startMusic, setScene, scrolling, setEnabled, get enabled() { return enabled; } };
+    return { ensure, startAmbience, tick, roll, drop, applause, whoosh, startMusic, setScene, scrolling, setEnabled,
+      onPulse(fn) { pulseFn = fn; }, get playing() { return musicOn && enabled; }, get enabled() { return enabled; } };
   })();
 
   function soundScenes() {
@@ -491,7 +512,7 @@
         if (jump) { const t = $(jump); if (t) scrollTo({ top: t.getBoundingClientRect().top + scrollY - 60, behavior: "instant" }); }
         engineUpdate && engineUpdate();
       };
-      if (Sound.enabled) Sound.startMusic();
+      if (Sound.enabled) { Sound.whoosh(); Sound.startMusic(); }
       if (instant || reduce) { finish(); return; }
       g.classList.add("done");
       const c = centre(cup), max = Math.hypot(innerWidth, innerHeight) * 1.1;
@@ -598,20 +619,45 @@
     }), { threshold: .12 });
     $$(".rv").forEach((el) => io.observe(el));
 
-    // dream film: load only when the scene is close, play the drone segment on a loop
-    const film = $("video.dream-photo");
-    if (film) {
-      const { from = 0, to = 0 } = C.dream;
-      let loaded = false;
-      const seekStart = () => { try { film.currentTime = from; } catch (e) { /* not ready */ } };
-      film.addEventListener("loadedmetadata", seekStart);
-      film.addEventListener("timeupdate", () => { if (to && (film.currentTime > to || film.currentTime < from - .5)) seekStart(); });
-      new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) {
-          if (!loaded) { loaded = true; film.src = C.dream.video + (from ? `#t=${from}` : ""); }
-          if (!reduce) { const p = film.play(); if (p && p.catch) p.catch(() => {}); }
-        } else if (loaded) film.pause();
-      }, { rootMargin: "100% 0px" }).observe(dream);
+    // dream reel: an edit of the film in HD. Two players take turns — while one shows a shot,
+    // the other is already waiting on the next, so every cut is clean (no buffering pause).
+    // When the music is on, the cuts land on its beat; otherwise the reel keeps its own time.
+    const reel = $(".reel");
+    if (reel && C.dream.shots) {
+      const shots = C.dream.shots, n = shots.length, every = (C.dream.cut || 3) * 1000;
+      const conn = navigator.connection || {};
+      const lowMem = navigator.deviceMemory && navigator.deviceMemory < 4;
+      const q = lowMem || conn.saveData || /(^|-)2g|3g/.test(conn.effectiveType || "") ? "720p" : "1080p";
+      let [cur, nxt] = $$("video", reel), next = 1, live = false, loaded = false, last = 0, clock = null;
+      const play = (v) => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+      function cue(v, shot) {
+        v.dataset.end = shot.t + (C.dream.cut || 3) * (shot.rate || 1) - .05;
+        const go = () => { try { v.currentTime = shot.t; } catch (e) { /* not ready */ } v.playbackRate = shot.rate || 1; };
+        v.readyState >= 1 ? go() : v.addEventListener("loadedmetadata", go, { once: true });
+      }
+      // never run past the end of a shot into the film's own edit: hold the last frame instead
+      $$("video", reel).forEach((v) => v.addEventListener("timeupdate", () => { if (v.currentTime > +v.dataset.end) v.pause(); }));
+      function cut() {
+        if (!live || performance.now() - last < every * .7) return;
+        last = performance.now();
+        nxt.playbackRate = shots[next].rate || 1; play(nxt);
+        nxt.classList.add("show"); cur.classList.remove("show");
+        const old = cur; cur = nxt; nxt = old;
+        next = (next + 1) % n;
+        setTimeout(() => { old.pause(); cue(old, shots[next]); }, 900);
+      }
+      Sound.onPulse(cut);
+      function start() {
+        if (!loaded) {
+          loaded = true;
+          [cur, nxt].forEach((v) => { v.preload = "auto"; v.src = C.dream.film(q); });
+          cue(cur, shots[0]); cue(nxt, shots[1]);
+        }
+        live = true; play(cur); cur.classList.add("show"); last = performance.now();
+        clearInterval(clock); clock = setInterval(() => { if (!Sound.playing) cut(); }, every);
+      }
+      function stop() { live = false; clearInterval(clock); $$("video", reel).forEach((v) => v.pause()); }
+      if (!reduce) new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop()), { rootMargin: "60% 0px" }).observe(dream);
     }
 
     // while the hole guide fills the screen, the dock steps aside so every line is visible

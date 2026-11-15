@@ -59,8 +59,18 @@ window.CART = {
     words: ["You drove", "an hour", "through traffic", "to play here."],
   },
   dream: {
-    // drone sweep over the course from the Zion Hills film (seconds 56–61.5, looped)
-    video: FILM("480p"), from: 56, to: 61.5,
+    // An edit of the Zion Hills film, played in HD (1080p; 720p on slow connections).
+    // Each shot is ~3 s on screen in gentle slow motion, cut on the beat of the music.
+    // t = where the shot starts in the film (seconds), rate = playback speed.
+    film: FILM,
+    shots: [
+      { t: 6.1, rate: .8 },     // on the balcony, looking out over the course
+      { t: 128, rate: .85 },    // aerial: villas wrapped around the fairways
+      { t: 76, rate: .85 },     // drone over the lake and greens
+      { t: 57, rate: .85 },     // drone over the course
+      { t: 116.2, rate: .85 },  // a golfer's swing
+    ],
+    cut: 3,                     // seconds per shot (half a chord of the dream music)
     image: IMG.aerial,        // poster / fallback
     words: ["This could be", "your home course."],
     line: "250 acres · 18 holes · A4 Bent Grass",
