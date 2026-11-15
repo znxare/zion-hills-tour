@@ -39,7 +39,7 @@
 
   function render() {
     const nt = O.nineteenth || {}, tn = O.tonight || {};
-    const quote = (C.residents || [])[0];
+    const voices = (C.residents || []).filter((r) => r.photo).slice(0, 4);
 
     $("#app").innerHTML = `
     <!-- 1. The city: film grit -->
@@ -150,16 +150,17 @@
 
     <!-- 4b. In their words -->
     <section class="sec voices" id="voices">
-      ${quote && quote.photo ? `<figure class="voices-photo"><img src="${esc(quote.photo)}" alt="${esc(quote.who)} at Zion Hills" loading="lazy"></figure>` : ""}
-      <div class="voices-in">
-      <p class="eyebrow">In their words</p>
-      ${quote ? `<blockquote class="pull rv"><p>${esc(quote.quote)}</p><cite>${esc(quote.who)}${quote.where ? ` · ${esc(quote.where)}` : ""}</cite></blockquote>` : ""}
-      ${on("brochure") ? `
-      <aside class="brochure rv">
-        <div><h3>${esc(O.brochure.title)}</h3><p>${esc(O.brochure.text)}</p></div>
-        <a class="btn dark wide" target="_blank" rel="noopener" href="${wa(`Hi, please send me the Zion Hills homes brochure and prices.${tail()}`)}">Send me the brochure & prices</a>
-      </aside>` : ""}
+      <p class="eyebrow v-eyebrow">In their words</p>
+      <div class="tcar" aria-label="Residents, in their own words">
+        ${voices.map((r, i) => `
+        <figure class="tcard" data-i="${i}">
+          <div class="tphoto"><img src="${esc(r.photo)}" alt="${esc(r.who)} at Zion Hills" loading="lazy"></div>
+          <blockquote class="tq">${r.quote.split(" ").map((w, k) => `<span style="--k:${k}">${esc(w)}</span>`).join(" ")}</blockquote>
+          <figcaption><b>${esc(r.who)}</b>${r.where ? `<span>${esc(r.where)}</span>` : ""}</figcaption>
+        </figure>`).join("")}
       </div>
+      <div class="tdots" aria-hidden="true">${voices.map((_, i) => `<i${i ? "" : ' class="on"'}></i>`).join("")}</div>
+      ${on("brochure") ? `<a class="btn tbro" target="_blank" rel="noopener" href="${wa(`Hi, please send me the Zion Hills homes brochure and prices.${tail()}`)}">Send me the brochure & prices</a>` : ""}
     </section>
 
     <!-- 5. The main ask -->
@@ -220,10 +221,10 @@
     let ctx = null, master, music, amb, rumble, wind, echo, tone, noiseBuf;
     let enabled = store.get("zh-sound") !== "off";
     let ambOn = false, musicOn = false, scene = "gate", wanted = "city", timers = [];
-    const BED = .34, LIFT = .8;
+    const BED = .55, LIFT = 1;              // the music leads; the course sounds sit underneath
 
     const SCENES = {
-      city: { chords: [[55, 82.41, 110, 130.81], [49, 73.42, 98, 116.54]], len: 9, bright: 700, plucks: 0, birds: 0, rumble: .14 },
+      city: { chords: [[55, 82.41, 110, 130.81], [49, 73.42, 98, 116.54]], len: 9, bright: 700, plucks: 0, birds: 0, rumble: .07 },
       dream: { chords: [[130.81, 196, 246.94, 293.66, 329.63], [174.61, 220, 261.63, 329.63, 392], [146.83, 220, 261.63, 293.66, 369.99], [196, 246.94, 293.66, 369.99, 440]], len: 6, bright: 3200, plucks: .35, birds: 1, rumble: 0 },
       course: { chords: [[130.81, 196, 246.94, 293.66, 329.63], [110, 164.81, 196, 246.94, 261.63], [87.31, 130.81, 164.81, 196, 220], [98, 146.83, 164.81, 220, 246.94]], len: 7, bright: 2400, plucks: .7, birds: 1, rumble: 0 },
       after: { chords: [[87.31, 130.81, 174.61, 220, 261.63], [130.81, 164.81, 196, 246.94, 329.63], [110, 164.81, 220, 261.63, 329.63], [98, 146.83, 196, 246.94, 293.66]], len: 8, bright: 1800, plucks: .45, birds: .5, rumble: 0 },
@@ -237,7 +238,7 @@
         master = ctx.createGain(); master.gain.value = enabled ? 1 : 0; master.connect(ctx.destination);
         tone = ctx.createBiquadFilter(); tone.type = "lowpass"; tone.frequency.value = 2400; tone.connect(master);
         music = ctx.createGain(); music.gain.value = 0; music.connect(tone);
-        amb = ctx.createGain(); amb.gain.value = 1; amb.connect(master);
+        amb = ctx.createGain(); amb.gain.value = .5; amb.connect(master);
         echo = ctx.createDelay(1); echo.delayTime.value = .42;
         const fb = ctx.createGain(); fb.gain.value = .34; const wet = ctx.createGain(); wet.gain.value = .35;
         echo.connect(fb); fb.connect(echo); echo.connect(wet); wet.connect(tone);
@@ -281,7 +282,7 @@
       f.type = "bandpass"; f.frequency.value = 520; f.Q.value = .6;
       lfo.frequency.value = .09; depth.gain.value = 260; lfo.connect(depth); depth.connect(f.frequency); lfo.start();
       n.connect(f); f.connect(wind); wind.connect(amb); n.start();
-      wind.gain.setTargetAtTime(.05, ctx.currentTime, 1.2);
+      wind.gain.setTargetAtTime(.025, ctx.currentTime, 1.2);
       const chirp = () => { if (!ambOn) return; if (scene !== "city") bird(ctx.currentTime + .05, amb, scene === "gate" ? .024 : .012); later(chirp, 2200 + Math.random() * 5200); };
       later(chirp, 600);
       // distant traffic for the city scene (silent until then)
@@ -309,7 +310,7 @@
       if (!ensure()) return; const t = ctx.currentTime;
       const n = noise(true), f = ctx.createBiquadFilter(), g = ctx.createGain();
       f.type = "lowpass"; f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(260, t + dur);
-      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.08, t + .06); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.045, t + .06); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
       n.connect(f); f.connect(g); g.connect(master); n.start(t, Math.random()); n.stop(t + dur + .05);
     }
     function drop() {                          // the sweetest sound in golf: in, rattle, settle
@@ -323,7 +324,7 @@
       if (!ensure()) return; const t0 = ctx.currentTime + .45, len = 2.6;
       for (let i = 0; i < 46; i++) {
         const k = Math.pow(Math.random(), 1.6), s = t0 + k * len;
-        burst(s, .03 + Math.random() * .02, 1100 + Math.random() * 1500, 1.2, .07 * (1 - k * .85));
+        burst(s, .03 + Math.random() * .02, 1100 + Math.random() * 1500, 1.2, .035 * (1 - k * .85));
       }
     }
 
@@ -364,7 +365,7 @@
     function applyScene() {
       const S = SCENES[scene];
       if (rumble) rumble.gain.setTargetAtTime(S.rumble, ctx.currentTime, 1);
-      if (wind) wind.gain.setTargetAtTime(scene === "city" ? 0 : .035, ctx.currentTime, 1.2);
+      if (wind) wind.gain.setTargetAtTime(scene === "city" ? 0 : .012, ctx.currentTime, 1.2);
     }
     function startMusic() {
       if (musicOn || !ensure()) return; musicOn = true;
@@ -383,21 +384,49 @@
       if (!musicOn || name === scene) return;
       scene = name; applyScene();
       if (lastChord) lastChord.gain.setTargetAtTime(.0001, ctx.currentTime, .6);   // let the old chord go
+      bell(ctx.currentTime + .05, SCENES[name].chords[0][2] * 4, .05);
       step = 0; nextChord();                   // the new mood arrives now, not at the next bar
     }
     function whoosh() {                        // air rushing past as the green opens into the story
       if (!ensure()) return; const t = ctx.currentTime;
       const n = noise(true), f = ctx.createBiquadFilter(), g = ctx.createGain();
       f.type = "bandpass"; f.Q.value = .8; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(2600, t + .9);
-      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.09, t + .45); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.04, t + .45); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2);
       n.connect(f); f.connect(g); g.connect(master); n.start(t, Math.random()); n.stop(t + 1.3);
     }
-    let settle = null;
+    function bell(t, f, vol) {               // a soft bell: sine + quiet octave, long tail through the echo
+      const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), g2 = ctx.createGain();
+      o.type = "sine"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f * 2.01; g2.gain.value = .3;
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + 2.4);
+      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(music); g.connect(echo);
+      o.start(t); o2.start(t); o.stop(t + 2.5); o2.stop(t + 2.5);
+    }
+    // words arriving on screen: a gentle rising run of notes that follows the text
+    let lastText = 0;
+    function words(count, gap = .06) {
+      if (!musicOn || !enabled) return;
+      const now = performance.now(); if (now - lastText < 500) return; lastText = now;
+      const t0 = ctx.currentTime + .05, notes = Math.min(7, Math.max(2, Math.round(count / 3)));
+      for (let i = 0; i < notes; i++) bell(t0 + i * (count * gap / notes), NOTES[i % NOTES.length] * (i >= NOTES.length ? 2 : 1), .028);
+    }
+    function thud() {                        // the city words land like a door closing
+      if (!musicOn || !enabled) return; const t = ctx.currentTime;
+      blip("sine", 120, 55, t, .25, .12, music);
+    }
+    // the scroll is an instrument: faster scrolling brightens and lifts the music
+    let settle = null, lastY = scrollY, lastT = performance.now();
     function scrolling() {
       if (!musicOn) return;
-      music.gain.setTargetAtTime(LIFT, ctx.currentTime, .35);
+      const now = performance.now(), v = Math.abs(scrollY - lastY) / Math.max(16, now - lastT) * 1000; // px per second
+      lastY = scrollY; lastT = now;
+      const S = SCENES[scene] || SCENES.course;
+      music.gain.setTargetAtTime(LIFT, ctx.currentTime, .3);
+      tone.frequency.setTargetAtTime(Math.min(6000, S.bright + v * 1.6), ctx.currentTime, .25);
       clearTimeout(settle);
-      settle = setTimeout(() => music.gain.setTargetAtTime(BED, ctx.currentTime, 1.6), 900);
+      settle = setTimeout(() => {
+        music.gain.setTargetAtTime(BED, ctx.currentTime, 1.4);
+        tone.frequency.setTargetAtTime(S.bright, ctx.currentTime, 1.2);
+      }, 700);
     }
     function setEnabled(v) {
       enabled = v; store.set("zh-sound", v ? "on" : "off");
@@ -405,7 +434,7 @@
       if (v) startMusic();
     }
     document.addEventListener("visibilitychange", () => { if (!ctx) return; document.hidden ? ctx.suspend() : ctx.resume(); });
-    return { ensure, startAmbience, tick, roll, drop, applause, whoosh, startMusic, setScene, scrolling, setEnabled,
+    return { ensure, startAmbience, tick, roll, drop, applause, whoosh, startMusic, setScene, scrolling, setEnabled, words, thud,
       onPulse(fn) { pulseFn = fn; }, get playing() { return musicOn && enabled; }, get enabled() { return enabled; } };
   })();
 
@@ -598,7 +627,7 @@
       city.style.setProperty("--p", pc.toFixed(3));
       dream.style.setProperty("--p", pd.toFixed(3));
       const shown = Math.min(cw.length, 1 + Math.floor(pc * cw.length * 1.05));
-      cw.forEach((w, i) => w.classList.toggle("on", i < shown));
+      cw.forEach((w, i) => { const was = w.classList.contains("on"); w.classList.toggle("on", i < shown); if (!was && i < shown && i > 0) Sound.thud(); });
       dw.forEach((w, i) => w.classList.toggle("on", pd > (i === 0 ? .14 : .32)));
       line.classList.toggle("on", pd > .5);
 
@@ -616,6 +645,7 @@
     const io = new IntersectionObserver((es) => es.forEach((e) => {
       if (!e.isIntersecting) return;
       e.target.classList.add("in"); io.unobserve(e.target);
+      if (/^H[23]$/.test(e.target.tagName)) Sound.words(e.target.textContent.split(/\s+/).length, .05);
     }), { threshold: .12 });
     $$(".rv").forEach((el) => io.observe(el));
 
@@ -662,6 +692,29 @@
 
     // while the hole guide fills the screen, the dock steps aside so every line is visible
     new IntersectionObserver(([e]) => document.body.classList.toggle("in-holes", e.isIntersecting), { rootMargin: "-50% 0px -50% 0px" }).observe($("#holes"));
+
+    // in their words: each quote arrives word by word, with notes; the carousel turns itself
+    const car = $(".tcar");
+    if (car) {
+      const cards = $$(".tcard", car), dots = $$(".tdots i");
+      let seen = false, cur = 0, auto = null, held = false;
+      const light = (i) => {
+        cards.forEach((c, k) => c.classList.toggle("on", k === i && seen));
+        dots.forEach((d, k) => d.classList.toggle("on", k === i));
+        if (seen) Sound.words($$("span", cards[i]).length);
+      };
+      const cio = new IntersectionObserver((es) => es.forEach((e) => {
+        if (e.intersectionRatio > .6) { const i = +e.target.dataset.i; if (i !== cur) { cur = i; light(i); } }
+      }), { root: car, threshold: [.6] });
+      cards.forEach((c) => cio.observe(c));
+      const turn = () => { if (held || !seen) return; car.scrollTo({ left: cards[(cur + 1) % cards.length].offsetLeft - car.offsetLeft, behavior: "smooth" }); };
+      car.addEventListener("touchstart", () => { held = true; }, { passive: true });
+      car.addEventListener("touchend", () => { setTimeout(() => { held = false; }, 4000); }, { passive: true });
+      new IntersectionObserver(([e]) => {
+        seen = e.isIntersecting; light(cur);
+        clearInterval(auto); if (seen && !reduce) auto = setInterval(turn, 7000);
+      }, { threshold: .55 }).observe($("#voices"));
+    }
 
     // keep the city clock showing the real time
     const clock = $(".live-time");

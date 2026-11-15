@@ -63,12 +63,12 @@ window.CART = {
     // Each shot is ~3 s on screen in gentle slow motion, cut on the beat of the music.
     // t = where the shot starts in the film (seconds), rate = playback speed.
     film: FILM,
+    // Only shots that fill a portrait phone screen (people shots were cropped on phones).
     shots: [
-      { t: 6.1, rate: .8 },     // on the balcony, looking out over the course
       { t: 128, rate: .85 },    // aerial: villas wrapped around the fairways
       { t: 76, rate: .85 },     // drone over the lake and greens
+      { t: 19, rate: .85 },     // sprinklers over the fairway
       { t: 57, rate: .85 },     // drone over the course
-      { t: 116.2, rate: .85 },  // a golfer's swing
     ],
     cut: 3,                     // seconds per shot (half a chord of the dream music)
     image: IMG.aerial,        // poster / fallback
@@ -175,10 +175,20 @@ window.CART = {
     match: { two: "Condominium", kids: "4 Bedroom Villa", friends: "3 Bedroom Villa", parents: "Phase II Home" },
   },
 
+  /* IN THEIR WORDS — real residents, their own words and photos, from zionhills.in/gallery.
+     Quotes are exact sentences from their testimonials. The first four are shown, in this order. */
   residents: [
-    // photos are the families' own pictures from zionhills.in/gallery; the first one is shown on the page
     { quote: "We came here for a two-week break, and never left!", who: "Joseph Cairns & family", where: "Residents for four years",
       photo: WIX("6c3b8b_b6343bbfd22c4073abe786b34c2adc56~mv2.png", 1100) },
+    { quote: "Zion Hills is the ultimate in immersive golf living, around a championship-level golf course and the best practice facilities and greens in the country.",
+      who: "Air Marshal P P Reddy (Retd.) & family", where: "Among the first residents",
+      photo: WIX("6c3b8b_b82c5b897e5642b587f1db51865656a3~mv2.png", 1100) },
+    { quote: "While it's just an hour away from the bustling city, it feels like a world apart.",
+      who: "Vinod Venkatreddygari & family", where: "Moved back from the US to live here",
+      photo: WIX("6c3b8b_da9c099a62a14c608e987afd56adc175~mv2.png", 1100) },
+    { quote: "The golf course is a true gem, offering a challenging yet enjoyable experience for players of any skill levels, all set against breathtaking views.",
+      who: "Milesh Jamburao & family", where: "Avid golfer, Zion Hills resident",
+      photo: WIX("6c3b8b_59591fc73ef34f47a7cf0cc8be09b631~mv2.png", 1100) },
     { quote: "When we tire of the hustle and bustle of Koramangala, we drive out to our little retreat and just unwind.", who: "Sanjay Gangwani & family", where: "Owners for about a decade",
       photo: WIX("6c3b8b_ff8bc6f74c0c43df945ae7fef5f1e290~mv2.png", 1100) },
   ],
