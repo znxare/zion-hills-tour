@@ -101,10 +101,9 @@
           <button class="lmap-open" type="button"><span class="lmap-dot"></span>Explore the live map</button>
         </div>
       </div>
-      <p class="lmap-note">Search any place, see the plots and get directions on the estate's main roads. Directions don't follow the cart paths.</p>
+      <p class="lmap-note">Search any place on the estate and see every plot. Tap the map to explore it live.</p>
       <div class="emap-actions">
-        <a class="btn wa-home" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Open full screen ↗</a>
-        <a class="btn line" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("Zion Hills Golf County, Kolar")}" target="_blank" rel="noopener">Directions</a>
+        <a class="btn wa-home" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Open the live map ↗</a>
       </div>
     </section>` : ""}
 
