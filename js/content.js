@@ -8,8 +8,14 @@
    put files in /images and write e.g.  image: "images/villa.jpg"
    ===================================================================== */
 
-// Turns a zionhills.in (Wix) media id into a sized image URL
-const WIX = (id, w = 1800) => `https://static.wixstatic.com/media/${id}/v1/fit/w_${w},h_${w},q_80,enc_auto/zionhills.jpg`;
+// Turns a zionhills.in (Wix) media id into a sized image URL.
+// Full-screen photos on a phone get a portrait crop (sharper on tall screens, far less memory).
+const PHONE = Math.min(screen.width, innerWidth) < 700 && innerHeight > innerWidth;
+const WIX = (id, w) => w
+  ? `https://static.wixstatic.com/media/${id}/v1/fit/w_${w},h_${w},q_80,enc_auto/zionhills.jpg`
+  : PHONE
+    ? `https://static.wixstatic.com/media/${id}/v1/fill/w_900,h_1600,al_c,q_78,enc_auto/zionhills.jpg`
+    : `https://static.wixstatic.com/media/${id}/v1/fit/w_1800,h_1800,q_80,enc_auto/zionhills.jpg`;
 const FILM = (q) => `https://video.wixstatic.com/video/6c3b8b_1dccca9d77124653848cb77fbea2ac6b/${q}/mp4/file.mp4`;
 
 const IMG = {
@@ -35,7 +41,7 @@ const IMG = {
   phase2:      WIX("6c3b8b_3f9c2264dff34c71a6611657826cea74~mv2.png"),
   birds:       WIX("6c3b8b_8d6d0b7ed6db46759e9dd057c6ebb146~mv2.png"),
   // Stock photo for "the city" chapter. TODO swap for a Bangalore traffic shot you own.
-  city:        "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=1600&q=70",
+  city:        "https://images.unsplash.com/photo-1519501025264-65ba15a82390?" + (PHONE ? "w=900&h=1600&fit=crop&q=70" : "w=1600&q=70"),
 };
 
 window.ZION = {

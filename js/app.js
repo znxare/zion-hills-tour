@@ -256,6 +256,8 @@
         if (!v) return;
         const want = visible && l.classList.contains("on") && !reduce;
         if (want && v.paused) {
+          v.muted = true; // phones only autoplay muted video
+          v.playsInline = true;
           if (!v.dataset.seeked && +v.dataset.start) {
             const go = () => { v.currentTime = +v.dataset.start; v.dataset.seeked = 1; };
             v.readyState >= 1 ? go() : v.addEventListener("loadedmetadata", go, { once: true });
@@ -272,8 +274,13 @@
       for (const s of stories) {
         const r = s.el.getBoundingClientRect();
         const visible = r.top < vh && r.bottom > 0;
-        // warm up every picture in a chapter before the visitor reaches it
-        if (!s.warm && r.top < vh * 2.5) { s.warm = true; $$("img", s.el).forEach((im) => (im.loading = "eager")); }
+        // keep only scenes near the screen in memory; warm their pictures up before they're reached
+        const near = r.top < vh * 2.5 && r.bottom > -vh * 1.5;
+        if (near !== s.near) {
+          s.near = near;
+          s.el.classList.toggle("near", near);
+          if (near) $$("img", s.el).forEach((im) => (im.loading = "eager"));
+        }
         if (visible) {
           const p = Math.min(0.9999, Math.max(0, -r.top / (r.height - vh)));
           setBeat(s, Math.floor(p * s.beats.length));
@@ -309,6 +316,10 @@
     const req = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
     addEventListener("scroll", req, { passive: true });
     addEventListener("resize", req);
+    addEventListener("orientationchange", req);
+    // back-button restore on phones keeps the old page state; refresh scenes and video
+    addEventListener("pageshow", () => { ticking = false; update(); });
+    document.addEventListener("visibilitychange", () => { ticking = false; update(); });
     update();
 
     const io = new IntersectionObserver((es) => es.forEach((e) => {
