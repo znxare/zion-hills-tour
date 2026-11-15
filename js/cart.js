@@ -78,17 +78,6 @@
       <p class="eyebrow rv">Your round</p>
       <h2 class="rv">18 holes.<br>One story.</h2>
       <p class="lead rv">A playing tip for every hole — and a line about life for the people who live beside it.</p>
-      ${Z.brand.mapUrl ? `
-      <a class="mapbig rv" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">
-        <img src="${esc(IMG.aerial)}" alt="" loading="lazy">
-        <span class="mapbig-shade"></span>
-        <span class="mapbig-pin" aria-hidden="true"><i></i><svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></span>
-        <span class="mapbig-copy">
-          <span class="mono">Live estate map</span>
-          <b>Where's the clubhouse? The next tee? Your way home?</b>
-          <span class="mapbig-btn">Open the map <span aria-hidden="true">↗</span></span>
-        </span>
-      </a>` : ""}
       ${C.yardage ? `
       <a class="yardbook rv" href="${esc(C.yardage)}" download>
         <span class="yardbook-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M6 2h11a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm1 2v16h10V4zm2 3h6v1.6H9zm0 3.4h6V12H9zm0 3.4h4v1.6H9z"/></svg></span>
@@ -103,6 +92,16 @@
         <button class="btn line" data-step="-1">← Previous</button>
         <button class="btn dark" data-step="1">Next hole →</button>
       </div>
+      ${Z.brand.mapUrl ? `
+      <a class="mapbig rv" href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">
+        <img src="${esc(IMG.aerial)}" alt="" loading="lazy">
+        <span class="mapbig-shade"></span>
+        <span class="mapbig-pin" aria-hidden="true"><i></i><svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></span>
+        <span class="mapbig-copy">
+          <b>Zion Hills map</b>
+          <span class="mapbig-btn">Open the map <span aria-hidden="true">↗</span></span>
+        </span>
+      </a>` : ""}
     </section>
 
     <!-- 4. The homes they've been driving past -->
@@ -141,7 +140,7 @@
         <p class="eyebrow">${on("nineteenth") ? esc(nt.eyebrow || "") : "After your round"}</p>
         <svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
           <defs><path id="seal-ring" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0"/></defs>
-          <g class="seal-spin"><text><textPath href="#seal-ring" textLength="272">${esc((on("nineteenth") && nt.seal) || "A DRINK ON US · AT THE CLUBHOUSE · ")}</textPath></text></g>
+          <g class="seal-spin"><text><textPath href="#seal-ring" textLength="272">${esc((on("nineteenth") && nt.seal) || "THE 19TH HOLE · AT THE CLUBHOUSE · ")}</textPath></text></g>
           <circle cx="60" cy="60" r="27" class="seal-core"/>
           <path d="M55 74V44h1.6l.5 1.4H70l-4 6.6 4 6.6H57v15.4z" class="seal-flag"/>
         </svg>
@@ -150,12 +149,12 @@
       <p class="lead">${on("nineteenth") ? esc(nt.text) : "We'll meet you at the clubhouse and walk you through a home, at your pace."}</p>
       <form id="after-form" novalidate>
         <label>Curious about
-          <select name="home"><option value="">${on("nineteenth") ? "Just the drink — and a chat" : "Not sure yet — show me around"}</option>${homes.map((x) => `<option>${esc(x.name)}</option>`).join("")}</select>
+          <select name="home"><option value="">Not sure yet — show me around</option>${homes.map((x) => `<option>${esc(x.name)}</option>`).join("")}</select>
         </label>
         <label>Your name<input name="name" autocomplete="name" required></label>
         <label>Phone<input name="phone" type="tel" inputmode="tel" autocomplete="tel" required></label>
         <p class="err" role="alert" hidden>Please add your name and phone number.</p>
-        <button class="btn light wide" type="submit">${on("nineteenth") ? esc(nt.button || "Save my drink — send on WhatsApp") : "Send on WhatsApp"}</button>
+        <button class="btn light wide" type="submit">${on("nineteenth") ? esc(nt.button || "Send on WhatsApp") : "Send on WhatsApp"}</button>
         <p class="small">Prefer to talk? <a href="tel:${esc(Z.contact.phone)}">Call us now</a>.${Z.brand.mapUrl ? ` <a href="${esc(Z.brand.mapUrl)}" target="_blank" rel="noopener">Find the clubhouse on the map ↗</a>` : ""}</p>
       </form>
       </div>
@@ -272,7 +271,7 @@
         <p class="tiny">Tap, then attach your photo in WhatsApp. ${esc(ct.terms)}</p>`;
     }
     if (kind === "tonight" && on("tonight")) return `<a class="btn line wide sm" href="#tonight">Stay the night →</a>`;
-    if (kind === "nineteenth" && on("nineteenth")) return `<a class="btn dark wide" href="#after">Claim your drink</a>`;
+    if (kind === "nineteenth" && on("nineteenth")) return `<a class="btn dark wide" href="#after">See a home after your round</a>`;
     return "";
   }
 
@@ -376,14 +375,14 @@
 
   function chrome() {
     $("#dock-wa").href = wa(`Hi, I'm on the course at Zion Hills and would like to know about the homes.${tail()}`);
-    $(".dock-main").textContent = on("nineteenth") ? (O.nineteenth.dock || "A drink on us") : "See a home after your round";
+    $(".dock-main").textContent = on("nineteenth") ? (O.nineteenth.dock || "See a home after your round") : "See a home after your round";
 
     // menu sheet
     const sheet = $("#sheet"), btn = $("#menu-btn");
     const links = [
       ["#holes", "Your round", "18 holes"],
       ["#homes", "The homes", "Look around"],
-      ["#after", "One more round", "On us"],
+      ["#after", "After your round", "Clubhouse"],
       C.yardage && [C.yardage, "Yardage book", "PDF ↓"],
       on("tonight") && ["#tonight", "Stay tonight", "Villas"],
       Z.brand.mapUrl && [Z.brand.mapUrl, "Estate map", "Live ↗"],
@@ -403,9 +402,9 @@
       err.hidden = true;
       const msg = [
         on("nineteenth")
-          ? "Hi, I'd like to take you up on the drink at the clubhouse after my round."
+          ? "Hi, I'd like to see a home at Zion Hills after my round."
           : "Hi, I'd like to see a home at Zion Hills after my round.",
-        `Curious about: ${f.home.value || (on("nineteenth") ? "Just the drink — and a chat" : "Not sure yet")}`,
+        `Curious about: ${f.home.value || "Not sure yet"}`,
         `Name: ${f.name.value.trim()}`,
         `Phone: ${f.phone.value.trim()}`,
         cart && `I'm on cart ${cart} — please meet me at the clubhouse.`,

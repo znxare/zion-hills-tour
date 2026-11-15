@@ -15,11 +15,11 @@ window.CART = {
     nineteenth: {
       on: true,
       eyebrow: "After your round",
-      seal: "A DRINK ON US · AT THE CLUBHOUSE · ",
-      title: "One more round.<br>This one's on us.",
-      text: "Pull the cart up to the clubhouse — your first drink is on the house. Curious about living here? We'll walk you to a home a few minutes away. No pressure, no pitch.",
-      button: "Save my drink — send on WhatsApp",
-      dock: "One more round — on us",
+      seal: "THE 19TH HOLE · AT THE CLUBHOUSE · ",
+      title: "Before you drive back.",
+      text: "Meet us at the clubhouse. We'll show you a home a few minutes away.",
+      button: "Send on WhatsApp",
+      dock: "See a home after your round",
     },
     contest: {
       on: true,
@@ -76,7 +76,7 @@ window.CART = {
   /* YARDAGE BOOK — the PDF in the site folder, built from the hole guide below
      (open yardage.html and "Save as PDF" to rebuild it). To use the official book
      instead, put its link here. */
-  yardage: "yardage-book.pdf",
+  yardage: "",   // e.g. "yardage-book.pdf" — removed from the page at the owner's request
 
   /* THE STORY — one line per hole, shown under each hole's playing tip.
      Front nine: a day in the life. Back nine: becoming a resident.
@@ -99,7 +99,7 @@ window.CART = {
     { label: "What's next", text: "Phase II homes are being designed now, with age-in-place features — a home for every stage of your life. Expressions of interest are open." },
     { text: "If you lived here, a view like this would be what you wake up to." },
     { label: "One more hole", text: "In an hour you'll be back in traffic." },
-    { label: "The 19th hole", text: "…or not. What if you didn't have to drive back? Your 19th hole is on us.", action: "nineteenth" },
+    { label: "The 19th hole", text: "…or not. What if you didn't have to drive back?", action: "nineteenth" },
   ],
 
   /* Hole guide — par and playing tips from zionhills.in/golf.

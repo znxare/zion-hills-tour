@@ -378,7 +378,7 @@ body.at-after .dock { opacity: 0; transform: translateY(20px); pointer-events: n
 
 /* ---------- Course tools: live map + yardage book ---------- */
 .mapbig {
-  position: relative; display: block; margin: 4px 0 12px; min-height: 230px; border-radius: 28px; overflow: hidden;
+  position: relative; display: block; margin: 18px 0 0; min-height: 200px; border-radius: 28px; overflow: hidden;
   text-decoration: none; color: #fff; background: var(--deep); box-shadow: 0 22px 44px rgba(16, 48, 30, .22);
   isolation: isolate;
 }
@@ -391,9 +391,9 @@ body.at-after .dock { opacity: 0; transform: translateY(20px); pointer-events: n
 .mapbig-pin { position: absolute; right: 26px; top: 24px; width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; background: var(--flame); color: #fff; box-shadow: 0 10px 24px rgba(232, 85, 46, .5); }
 .mapbig-pin i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--flame); animation: ping 2s var(--ease) infinite; }
 @keyframes ping { from { transform: scale(1); opacity: .9; } to { transform: scale(2.6); opacity: 0; } }
-.mapbig-copy { position: relative; display: grid; gap: 8px; padding: 92px 22px 22px; }
+.mapbig-copy { position: relative; display: grid; gap: 12px; padding: 96px 22px 22px; }
 .mapbig-copy .mono { color: #ffb79f; font-size: 11px; letter-spacing: .14em; }
-.mapbig-copy b { font: italic 400 30px/1.05 var(--serif); letter-spacing: -.01em; text-wrap: balance; }
+.mapbig-copy b { font: italic 400 38px/1 var(--serif); letter-spacing: -.01em; text-wrap: balance; }
 .mapbig-btn { justify-self: start; margin-top: 6px; padding: 12px 18px; border-radius: 999px; background: #fff; color: var(--deep); font: 700 15px/1 var(--sans); }
 .yardbook {
   display: grid; grid-template-columns: 44px 1fr 20px; gap: 14px; align-items: center; margin: 0 0 6px;
