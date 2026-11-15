@@ -1,0 +1,83 @@
+/* =====================================================================
+   GOLF-CART PAGE CONTENT  (index.html)
+   The QR code on each cart opens this page. Give every cart its own code:
+     https://znxare.github.io/zion-hills-tour/?cart=12
+   The cart number then appears in every enquiry, so the team knows where
+   the visitor is. Photos, contact details and home types come from
+   js/content.js.
+   ===================================================================== */
+
+window.CART = {
+  hero: {
+    image: IMG.flameTree,
+    kicker: "Scanned from your golf cart",
+    title: "Enjoy your round.<br>Then picture it every Saturday.",
+    text: "Every home at Zion Hills faces this course — including the ones you're driving past.",
+  },
+
+  /* Hole guide — par and playing tips from zionhills.in/golf.
+     Handicap index is shown only where the main site lists it (front nine). TODO back nine. */
+  holes: [
+    { par: 4, hcp: 17, tip: "A good drive avoiding the out of bounds on the right and the bunker on the left sets up a relatively small approach. The green is multi-tiered — be on the right level for a chance at birdie." },
+    { par: 5, hcp: 9, tip: "A short par 5. Avoid the bunker on the left from the tee and you might reach this green in two if the wind is with you. The green is well guarded by bunkers; a flag on the top level makes it tough." },
+    { par: 4, hcp: 15, tip: "Reachable if you miss the massive bunkers from the tee and the wind is at your back. One of the toughest greens on the course, with a giant rise guarding the back. Don't be long on the approach." },
+    { par: 4, hcp: 3, tip: "Out of bounds on the right — keep your drive to the left side of the fairway. The approach to one of the larger greens plays shorter than the yardage, as it is downhill." },
+    { par: 3, hcp: 13, tip: "Intimidating, with water all the way up to the green. The green has a big hollow in the middle. A miss to the right gives you a chance to save par." },
+    { par: 5, hcp: 1, tip: "Beware the bunkers and out of bounds on both sides off the tee. Only long hitters can reach in two because of the water short of the green. A right-side flag makes for an intimidating approach." },
+    { par: 3, hcp: 11, badge: "Toughest par 3", tip: "Water on the left, bunkers on the right. A par on this hole is a great score." },
+    { par: 4, hcp: 5, badge: "Toughest hole", tip: "Out of bounds on the right and water along the left — keeping the tee shot in play is everything. Then a challenging approach over the trees; anything left is wet." },
+    { par: 4, hcp: 7, tip: "Straightforward, but plays longer than its yardage thanks to the elevated green. Out of bounds right from the tee. Two levels on the green — a two-putt isn't guaranteed." },
+    { par: 5, tip: "A dogleg right with a very difficult tee shot — bunkers and hazards on both sides. A large bunker guards the front of the green, with the hazard along the left." },
+    { par: 4, tip: "Risk and reward. Long hitters can try driving the green, but a big bunker guards the front and there's out of bounds on both sides. A large contour in the middle of the green." },
+    { par: 4, tip: "A short par 4 with hazards and mango trees lining both sides. The green slopes front to back, bunkered all round. Hit the fairway and the approach is relatively easy." },
+    { par: 4, badge: "Signature hole · island green", tip: "Set up the approach with a good drive — the contoured island green is surrounded by the lake, so the approach has to be accurate." },
+    { par: 3, badge: "Longest par 3 in India", tip: "A real test of the long game, with bunkers on all sides of the green. Aim for the front of the green and play for par." },
+    { par: 4, tip: "A dogleg right with two options: play left for a longer approach, or drive past the fairway bunker on the right. Out of bounds all the way down the right. The green slopes front to back." },
+    { par: 3, badge: "Picturesque", tip: "A green wrapped in rock on three sides with a bunker on the left. It is uniquely shaped left to right, so check your yardage to the flag carefully." },
+    { par: 4, tip: "Long, with a downhill tee shot and an uphill approach. Avoid the creek running across the fairway off the tee." },
+    { par: 5, badge: "Longest par 5 in India", tip: "A double dogleg finish. Avoid the hazard left off the tee and the fairway bunkers left on your second; the third plays uphill to a large three-tiered green. Back-left flags are brutal." },
+  ],
+
+  /* Little facts shown under the hole guide, one per hole, between shots */
+  betweenShots: [
+    "Every home at Zion Hills is golf-front. The ones you can see from the cart path are no exception.",
+    "You're playing the only Ronald Fream course in India.",
+    "These greens are A4 Bent Grass — the only course in India that has it.",
+    "Over 150 homes here are already lived in, by full-time and weekend residents.",
+    "Kids can train at the Tarun Sardesai Golf Academy, right here, while you play.",
+    "Look up: more than 50 species of birds live on the estate.",
+    "The air you're breathing typically measures an AQI under 20.",
+    "Five to six kilometres of tree-lined roads run inside the gate — perfect for a morning walk or ride.",
+    "Phase II homes are now taking expressions of interest, with priority access for early sign-ups.",
+  ],
+
+  /* "Make it your Saturday" planner */
+  planner: {
+    who: [
+      { id: "two", label: "Just the two of us" },
+      { id: "kids", label: "Family with kids" },
+      { id: "friends", label: "Friends over often" },
+      { id: "parents", label: "Parents too" },
+    ],
+    day: [
+      { id: "golf", label: "Golf" },
+      { id: "learn", label: "Learning golf" },
+      { id: "sport", label: "Pool & sports" },
+      { id: "slow", label: "Doing nothing" },
+    ],
+    // Approximate drive times — TODO confirm with the Zion Hills team
+    from: [
+      { id: "east", label: "East — Whitefield, KR Puram", mins: "about 60 min" },
+      { id: "north", label: "North — Hebbal, airport side", mins: "about 70 min" },
+      { id: "central", label: "Central — Indiranagar, Koramangala", mins: "about 75–90 min" },
+      { id: "south", label: "South & West", mins: "about 90 min" },
+    ],
+    // Which home to suggest for each "who" answer (names must match homes in js/content.js)
+    match: { two: "Condominium", kids: "4 Bedroom Villa", friends: "3 Bedroom Villa", parents: "Phase II Home" },
+  },
+
+  residents: [
+    { quote: "We came here for a two-week break, and never left!", who: "Joseph Cairns & family" },
+    { quote: "When we tire of the hustle and bustle of Koramangala, we drive out to our little retreat and just unwind.", who: "Sanjay Gangwani & family" },
+  ],
+};

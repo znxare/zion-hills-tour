@@ -2,7 +2,20 @@
 
 A scroll-driven storytelling site that people reach by scanning a QR code. It walks a visitor through the property, then gets them to book a site visit. It works alongside the main website and doesn't replace it.
 
-## The Living Story — 12 chapters
+## Golf-cart page (index.html) — what the cart QR codes open
+Built for someone sitting in a cart mid-round: light, high-contrast, one thumb.
+1. **Hero** — "Enjoy your round. Then picture it every Saturday."
+2. **Hole-by-hole guide** — par, tips and badges for all 18 holes (remembers the last hole viewed)
+3. **Live on the course** — home cards with one-tap "Prices & plan on WhatsApp"
+4. **Make it your Saturday** — 3 taps → a personal day plan, drive time and a matched home
+5. **See a home after your round** — pick a time, sends a WhatsApp with the cart number
+6. **Invite a friend** — for owners (Zion Hills sells by referral)
+
+**One QR code per cart:** `https://znxare.github.io/zion-hills-tour/?cart=12`
+The cart number shows on the page and is included in every WhatsApp enquiry.
+Edit hole tips, planner answers and drive times in `js/cart-content.js`.
+
+## The Living Story — 12 chapters (story.html)
 01 The question · 02 The city · 03 Zion Hills · 04 Golf · 05 Life · 06 Homes · 07 Space ·
 08 Evidence · 09 Ownership · 10 Value · 11 Find your home · 12 Visit (private tour booking)
 
