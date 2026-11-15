@@ -60,12 +60,10 @@
           ? `<div class="reel" aria-label="Scenes from Zion Hills"><img class="reel-poster" src="${esc(C.dream.image)}" alt="" loading="lazy"><video muted playsinline preload="none"></video><video muted playsinline preload="none"></video></div>`
           : `<img class="dream-photo" src="${esc(C.dream.image)}" alt="The Zion Hills course" loading="lazy">`}
         <div class="dream-wash"></div>
-        ${petals(reduce ? 0 : 14)}
-        <span class="float-ball" style="--s:26px;--x:12%;--y:22%;--delay:-2s" aria-hidden="true"></span>
-        <span class="float-ball" style="--s:18px;--x:80%;--y:16%;--delay:-4s" aria-hidden="true"></span>
-        <span class="float-ball" style="--s:34px;--x:72%;--y:64%;--delay:-1s" aria-hidden="true"></span>
-        <div class="dream-dark"></div>
-        <h2 class="dream-words" aria-label="${esc(C.dream.words.join(" "))}">${C.dream.words.map((w) => `<span aria-hidden="true">${esc(w)}</span>`).join("")}</h2>
+        <div class="dream-grade" aria-hidden="true"></div>
+        <h2 class="dream-words" aria-label="${esc(C.dream.words.join(" "))}">${C.dream.words.map((w, k) => k === 0
+          ? `<span aria-hidden="true">${esc(w)}</span>`
+          : `<span aria-hidden="true">${(() => { let n = 0; return w.split(" ").map((word) => `<b class="wd">${[...word].map((ch) => `<i style="--i:${n++}">${esc(ch)}</i>`).join("")}</b>`).join(" "); })()}</span>`).join("")}</h2>
         <p class="mono dream-line">${esc(C.dream.line)}</p>
       </div>
     </section>
@@ -230,11 +228,27 @@
     const C9 = [130.81, 196, 246.94, 293.66, 329.63], Am9 = [110, 164.81, 196, 246.94, 261.63],
       F9 = [87.31, 130.81, 164.81, 196, 220], G69 = [98, 146.83, 164.81, 220, 246.94],
       Fadd9 = [87.31, 130.81, 174.61, 220, 261.63], Dm9 = [73.42, 130.81, 174.61, 220, 261.63];
+    // the "royal road" progression (IV–V–iii–vi): warm, hopeful, a little bittersweet
+    const Fma7 = [87.31, 130.81, 164.81, 220, 261.63], G6 = [98, 146.83, 196, 246.94, 329.63],
+      Em7 = [82.41, 123.47, 196, 246.94, 293.66], Am7 = [110, 164.81, 196, 261.63, 329.63];
     const SCENES = {
-      city: { prog: [[55, 82.41, 110, 130.81], [49, 73.42, 98, 116.54]], bars: 2, bright: 800, arp: "none", rumble: .07 },
-      dream: { prog: [C9, F9, Am9, G69], bars: 1, bright: 3600, arp: "rise", rumble: 0, cut: true },
-      course: { prog: [C9, Am9, F9, G69], bars: 2, bright: 2600, arp: "sparse", rumble: 0 },
-      after: { prog: [Fadd9, C9, Dm9, G69], bars: 2, bright: 2000, arp: "slow", rumble: 0 },
+      city: { prog: [[55, 82.41, 110, 130.81], [49, 73.42, 98, 116.54]], bars: 2, bright: 800, arp: "none", rumble: .07, mel: "city" },
+      dream: { prog: [Fma7, G6, Em7, Am7], bars: 1, bright: 4200, arp: "none", rumble: 0, cut: true, mel: "theme", strings: true },
+      course: { prog: [Fma7, G6, Em7, Am7], bars: 2, bright: 2800, arp: "none", rumble: 0, mel: "echo", strings: true },
+      after: { prog: [Fadd9, C9, Dm9, G69], bars: 2, bright: 2200, arp: "none", rumble: 0, mel: "home", strings: true },
+    };
+    // melodies: [beat in the phrase, note in Hz, length in beats] — one line per bar of the progression
+    const N = { A4: 440, B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99, A5: 880, B5: 987.77, C6: 1046.5 };
+    const MEL = {
+      theme: [                                   // the Zion Hills theme: rises, sighs, rises higher, comes home
+        [[0, N.C5, 1], [1, N.E5, 1], [2, N.G5, 2]],
+        [[0, N.D5, 1], [1, N.E5, 1], [2, N.B4, 2]],
+        [[0, N.E5, 1], [1, N.G5, 1], [2, N.B5, 1], [3, N.A5, 1]],
+        [[0, N.G5, 2], [2, N.E5, 2]],
+      ],
+      echo: [[[0, N.C5, 2]], [], [[0, N.E5, 2], [2, N.D5, 2]], []],
+      home: [[[0, N.A4, 1], [1, N.C5, 1], [2, N.E5, 2]], [[0, N.G5, 4]], [[0, N.D5, 1], [1, N.F5 || 698.46, 1], [2, N.E5, 2]], [[0, N.D5, 4]]],
+      city: [[[2, 220, 2]], [], [[2, 196, 2]], []],
     };
 
     function impulse(sec) {                  // a soft hall: decaying stereo noise
@@ -362,11 +376,33 @@
         [0, 6].forEach((cents) => {
           const o = ctx.createOscillator(), g = ctx.createGain();
           o.type = cents ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = cents + (i % 2 ? -4 : 4);
-          g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.019, t + 1.4); g.gain.setValueAtTime(.019, t + len);
+          g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.012, t + 1.4); g.gain.setValueAtTime(.012, t + len);
           g.gain.linearRampToValueAtTime(.0001, t + len + 2.2);
           o.connect(g); g.connect(bus); o.start(t); o.stop(t + len + 2.3);
         });
       });
+    }
+    function strings(chord, t, len) {        // warm ensemble: detuned saws, slow bow, soft filter
+      const lp = ctx.createBiquadFilter(), g = ctx.createGain();
+      lp.type = "lowpass"; lp.frequency.value = 1300; lp.Q.value = .3;
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.014, t + 1.8); g.gain.setValueAtTime(.014, t + len);
+      g.gain.linearRampToValueAtTime(.0001, t + len + 1.6);
+      lp.connect(g); g.connect(music);
+      chord.slice(1).forEach((f) => [-7, 0, 7].forEach((c) => {
+        const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = c;
+        o.connect(lp); o.start(t); o.stop(t + len + 1.7);
+      }));
+    }
+    function piano(f, t, beats, vol = .07) { // a felt piano: struck partials that decay, a touch of hammer
+      const len = Math.max(1.6, beats * BEAT * 1.6), g = ctx.createGain();
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(vol * .35, t + .35);
+      g.gain.exponentialRampToValueAtTime(.0001, t + len);
+      [[1, 1], [2, .42], [3, .16], [4, .06]].forEach(([h, a]) => {
+        const o = ctx.createOscillator(), og = ctx.createGain(); o.type = "sine"; o.frequency.value = f * h * (h > 1 ? 1.0015 : 1);
+        og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + len + .05);
+      });
+      g.connect(music); g.connect(delay);
+      burst(t, .02, 2400, 1, vol * .25, music);
     }
     function bass(f, t, len) {               // a warm sine on the downbeat
       const o = ctx.createOscillator(), g = ctx.createGain();
@@ -393,7 +429,12 @@
           note(SCENES[scene].prog[0][2] * 4, t, .045, 2.6);   // a bell marks the new chapter
         }
         const S2 = SCENES[scene];
-        if (barInChord % S2.bars === 0) { chord = S2.prog[chordIx++ % S2.prog.length]; pad(chord, t, S2.bars * BAR); }
+        if (barInChord % S2.bars === 0) {
+          chord = S2.prog[chordIx++ % S2.prog.length]; pad(chord, t, S2.bars * BAR);
+          if (S2.strings && lift > 0) strings(chord, t, S2.bars * BAR);
+        }
+        const line = MEL[S2.mel], phraseBar = Math.floor((chordIx - 1) % S2.prog.length);
+        if (line && barInChord % S2.bars === 0) (line[phraseBar] || []).forEach(([b0, f, len]) => piano(f, t + b0 * BEAT, len, scene === "dream" ? .075 : .05));
         barInChord++;
         bass(chord[0] < 80 ? chord[0] : chord[0] / 2, t, BAR * .95);
         if (S2.cut && barFn) barFn(t + BAR);                // tell the film where the next downbeat is
@@ -435,6 +476,28 @@
       const step = BEAT / div, since = ctx.currentTime - (nextT - BEAT);
       return ctx.currentTime + (step - (since % step)) % step + .01;
     }
+    let lift = 1;                                // strings in once the music has bloomed
+    let building = null;
+    function build() {                           // "This could be" — a soft swell rises underneath
+      if (!musicOn || !enabled) return;
+      const t = ctx.currentTime, n = noise(true), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      f.type = "bandpass"; f.Q.value = 1.2; f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(5200, t + 3);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + 2.6); g.gain.exponentialRampToValueAtTime(.0001, t + 3.4);
+      n.connect(f); f.connect(g); g.connect(music); n.start(t, Math.random()); n.stop(t + 3.5);
+      building = g;
+      music.gain.setTargetAtTime(BED * .7, t, .4);                 // hush before the bloom
+    }
+    function bloom() {                           // "your home course." — the music opens up
+      if (!musicOn || !enabled) return;
+      const t = ctx.currentTime + .02;
+      if (building) { building.gain.cancelScheduledValues(t); building.gain.setTargetAtTime(.0001, t, .08); building = null; }
+      blip("sine", 70, 38, t, 1.2, .22, music);                    // a deep, soft impact
+      [Fma7, [174.61, 261.63, 329.63, 440, 523.25]].forEach((c) => strings(c, t, BAR * 1.5));
+      [N.C5, N.E5, N.G5, N.C6].forEach((f, i) => piano(f, t + i * .09, 3, .06));
+      music.gain.setTargetAtTime(LIFT, t, .5);
+      tone.frequency.setTargetAtTime(5200, t, .4);
+      setTimeout(() => music.gain.setTargetAtTime(BED, ctx.currentTime, 2.5), 4000);
+    }
     let lastText = 0;
     function words(count) {                   // text arriving: a short rising phrase, in key and in time
       if (!musicOn || !enabled) return;
@@ -467,7 +530,7 @@
     }
     document.addEventListener("visibilitychange", () => { if (!ctx) return; document.hidden ? ctx.suspend() : ctx.resume(); });
     return {
-      ensure, startAmbience, tick, roll, drop, applause, whoosh, startMusic, setScene, scrolling, setEnabled, words, thud,
+      ensure, startAmbience, tick, roll, drop, applause, whoosh, startMusic, setScene, scrolling, setEnabled, words, thud, build, bloom,
       // the film asks to be told, one bar ahead, when the next downbeat will sound (in ms from now)
       onBar(fn) { barFn = (t) => fn(Math.max(0, (t - ctx.currentTime + (ctx.outputLatency || ctx.baseLatency || 0)) * 1000)); },
       get bar() { return BAR; }, get playing() { return musicOn && enabled && !!ctx && ctx.state === "running"; }, get enabled() { return enabled; },
@@ -708,9 +771,15 @@
       const pc = prog(city), pd = prog(dream);
       city.style.setProperty("--p", pc.toFixed(3));
       dream.style.setProperty("--p", pd.toFixed(3));
+      const ease = (x) => x * x * (3 - 2 * x);
+      dream.style.setProperty("--e", ease(clamp((pd - .02) / .42)).toFixed(3));   // the film's window opening
       const shown = Math.min(cw.length, 1 + Math.floor(pc * cw.length * 1.05));
       cw.forEach((w, i) => { const was = w.classList.contains("on"); w.classList.toggle("on", i < shown); if (!was && i < shown && i > 0) Sound.thud(); });
-      dw.forEach((w, i) => w.classList.toggle("on", pd > (i === 0 ? .14 : .32)));
+      dw.forEach((w, i) => {
+        const was = w.classList.contains("on"), now = pd > (i === 0 ? .12 : .3);
+        w.classList.toggle("on", now);
+        if (now && !was) i === 0 ? Sound.build() : Sound.bloom();   // the music rises with the words
+      });
       line.classList.toggle("on", pd > .5);
 
       const under = document.elementFromPoint(innerWidth / 2, 30);
