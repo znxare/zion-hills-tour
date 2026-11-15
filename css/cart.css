@@ -896,3 +896,6 @@ body.at-end .dock { opacity: 0; transform: translateY(20px); pointer-events: non
 /* the clubhouse sheet now leads into the close */
 .nineteenth { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 @media (prefers-reduced-motion: reduce) { .t-photo, .t-logo, .t-title span, .t-line, .t-top { transition: none; } }
+/* homes: brighter, livelier photos */
+.card-img img { filter: brightness(1.1) saturate(1.2) contrast(1.06); }
+.card-img::after { height: 28%; background: linear-gradient(to top, rgba(16, 48, 30, .14), transparent); }
