@@ -899,3 +899,31 @@ body.at-end .dock { opacity: 0; transform: translateY(20px); pointer-events: non
 /* homes: brighter, livelier photos */
 .card-img img { filter: brightness(1.1) saturate(1.2) contrast(1.06); }
 .card-img::after { height: 28%; background: linear-gradient(to top, rgba(16, 48, 30, .14), transparent); }
+
+/* ===================== 18 holes: the broadcast moment ===================== */
+.hole-photo img { animation: none; transform: scale(1.1); transform-origin: 50% 60%; }
+.hole-photo.fly img { animation: kb 7.5s cubic-bezier(.2, .6, .2, 1) forwards; }
+@keyframes kb { from { transform: scale(1.12); } to { transform: scale(1); } }
+/* shot tracer */
+.tracer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.tracer path { fill: none; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.tr-glow { stroke: #ff8a5c; stroke-width: 3.4; opacity: .45; }
+.tr-line { stroke: #fff; stroke-width: 1.1; }
+.hole-photo.fly .tracer path { animation: trace 1.5s cubic-bezier(.25, .55, .35, 1) forwards; }
+@keyframes trace { to { stroke-dashoffset: 0; } }
+.tr-pin { opacity: 0; }
+.tr-flag { fill: var(--flame); stroke: #fff; stroke-width: .5; }
+.tr-ball { fill: #fff; }
+.tr-ring { fill: none; stroke: #fff; stroke-width: .6; transform-box: fill-box; transform-origin: center; }
+.hole-photo.fly .tr-pin { animation: pinIn .45s ease 1.4s forwards; }
+.hole-photo.fly .tr-ring { animation: ring 1.4s ease-out 1.45s 2; }
+@keyframes pinIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ring { from { transform: scale(.4); opacity: .9; } to { transform: scale(2.6); opacity: 0; } }
+.hole-photo figcaption { z-index: 2; }
+/* the story writes itself */
+.lived p span { opacity: .15; transition: opacity .5s ease; transition-delay: calc(.7s + var(--k) * 45ms); }
+.lived.write p span { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .hole-photo.fly img, .hole-photo.fly .tracer path, .hole-photo.fly .tr-pin, .hole-photo.fly .tr-ring { animation: none; }
+  .tracer path { stroke-dashoffset: 0; } .tr-pin { opacity: 1; } .lived p span { opacity: 1; transition: none; }
+}

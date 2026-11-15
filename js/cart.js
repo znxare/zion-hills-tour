@@ -570,6 +570,18 @@
       blip("sine", 65.4, 65.4, t, 4, .12, fx);
       [261.63, 329.63, 392, 523.25, 659.25, 783.99].forEach((f, i) => bellFx(f, t + i * .22, .04, 4));
     }
+    function flight(dur) {                    // the ball in the air: a gentle rising tone that fades as it lands
+      if (!enabled || !ensure()) return;
+      const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(520, t); o.frequency.exponentialRampToValueAtTime(1250, t + dur * .55); o.frequency.exponentialRampToValueAtTime(880, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.022, t + .25); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      o.connect(g); g.connect(fx); o.start(t); o.stop(t + dur + .05);
+    }
+    function land() {                         // a soft landing on the green
+      if (!enabled || !ensure()) return;
+      const t = ctx.currentTime;
+      blip("sine", 240, 120, t, .12, .07); bellFx(1046.5, t + .03, .02, .9);
+    }
     let lastSel = 0;
     function select(i) {
       if (!enabled || !ensure()) return;
@@ -585,7 +597,7 @@
       });
     }
     return {
-      select, type, slide, finale,
+      select, type, slide, finale, flight, land,
       ensure, startAmbience, tick, roll, drop, applause, whoosh, startMusic, setScene, scrolling, setEnabled, words, thud, build, bloom,
       // the film asks to be told, one bar ahead, when the next downbeat will sound (in ms from now)
       onBar(fn) { barFn = (t) => fn(Math.max(0, (t - ctx.currentTime + (ctx.outputLatency || ctx.baseLatency || 0)) * 1000)); },
@@ -770,13 +782,42 @@
 
   function holes() {
     const card = $(".hole"), btns = $$("[data-hole]");
-    let cur = 0;                                   // always start the round on hole 1
-    function show(i) {
+    let cur = 0, visible = false;                  // always start the round on hole 1
+    // a broadcast-style shot tracer for each hole (decorative — the same arc every time you see that hole)
+    function tracer(i) {
+      const ex = 62 + ((i * 37) % 76), ey = 48 + ((i * 7) % 14), bend = (i % 2 ? 1 : -1) * (18 + ((i * 13) % 26));
+      const d = `M100 104 Q ${100 + bend} ${ey - 34} ${ex} ${ey}`;
+      return `<svg class="tracer" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <path class="tr-glow" d="${d}" pathLength="1"/><path class="tr-line" d="${d}" pathLength="1"/>
+          <g transform="translate(${ex} ${ey})"><g class="tr-pin"><circle class="tr-ring" r="3.2"/><path class="tr-flag" d="M0 0V-10l7 2.4-7 2.4"/><circle class="tr-ball" r="1.5"/></g></g>
+        </svg>`;
+    }
+    const words = (t) => esc(t).split(" ").map((w, k) => `<span style="--k:${k}">${w}</span>`).join(" ");
+    function play() {                               // run the hole's moment: tracer, yards, photo, story
+      const fig = $(".hole-photo", card);
+      if (!fig || fig.classList.contains("fly")) return;
+      fig.classList.add("fly");
+      const lived = $(".lived", card); if (lived) lived.classList.add("write");
+      if (reduce) return;
+      Sound.flight(1.5); setTimeout(() => Sound.land(), 1450);
+      if (lived) setTimeout(() => Sound.type($$("p span", lived).length, .045), 700);
+      const yd = $(".yds", card), total = C.holes[cur].yds;
+      if (yd && total) {
+        const t0 = performance.now();
+        (function tick(now) {
+          const k = clamp((now - t0) / 1450), e = 1 - Math.pow(1 - k, 3);
+          yd.textContent = `${Math.round(total * e)} yards`;
+          if (k < 1 && yd.isConnected) requestAnimationFrame(tick);
+        })(t0);
+      }
+    }
+    function show(i, dir = 0) {
       cur = (i + 18) % 18;
       const x = C.holes[cur], s = (C.story || [])[cur] || {};
       card.innerHTML = `
         <figure class="hole-photo">
           <img src="${photo(cur)}" alt="Aerial view of hole ${cur + 1}" width="1280" height="600">
+          ${tracer(cur)}
           <figcaption>
             <span class="hole-no"><small>Hole</small>${cur + 1}</span>
             <span class="hole-meta"><b>Par ${x.par}</b>${x.yds ? `<span class="yds">${x.yds} yards</span>` : ""}${x.hcp ? `<span>Handicap ${x.hcp}</span>` : ""}</span>
@@ -787,16 +828,22 @@
         ${s.text ? `
         <div class="lived${cur >= 9 ? " back" : ""}">
           <span>${esc(s.label || "If you lived here")}</span>
-          <p>${esc(s.text)}</p>
+          <p>${words(s.text)}</p>
           ${s.action ? `<div class="lived-act">${actionHtml(s.action)}</div>` : ""}
         </div>` : ""}`;
+      if (dir && !reduce && card.animate) {
+        card.animate([{ opacity: 0, transform: `translateX(${dir * 38}px)` }, { opacity: 1, transform: "none" }],
+          { duration: 460, easing: "cubic-bezier(.2,.7,.1,1)" });
+      }
       btns.forEach((b, k) => { b.classList.toggle("on", k === cur); b.classList.toggle("seen", k < cur); b.setAttribute("aria-selected", k === cur); });
       const active = btns[cur], nav = $(".hole-nav");
       nav.scrollTo({ left: active.offsetLeft - nav.clientWidth / 2 + active.offsetWidth / 2, behavior: "smooth" });
-      // warm up the photos either side so swiping feels instant
-      [cur + 1, cur - 1].forEach((k) => { const im = new Image(); im.src = photo((k + 18) % 18); });
+      [cur + 1, cur - 1].forEach((k) => { const im = new Image(); im.src = photo((k + 18) % 18); });   // warm up neighbours
+      if (visible) play();
     }
-    btns.forEach((b) => b.addEventListener("click", () => { show(+b.dataset.hole); Sound.select(cur); }));
+    // the first hole plays its moment when the guide comes into view
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) play(); }, { threshold: .5 }).observe(card);
+    btns.forEach((b) => b.addEventListener("click", () => { const to = +b.dataset.hole; show(to, to > cur ? 1 : to < cur ? -1 : 0); Sound.select(cur); }));
     // swipe the hole card left/right to change hole
     let sx = null, sy = 0;
     card.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
@@ -804,10 +851,10 @@
       if (sx === null) return;
       const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
       sx = null;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { show(cur + (dx < 0 ? 1 : -1)); Sound.select(cur); }
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { const d = dx < 0 ? 1 : -1; show(cur + d, d); Sound.select(cur); }
     });
     $$("[data-step]").forEach((b) => b.addEventListener("click", () => {
-      show(cur + +b.dataset.step); Sound.select(cur);
+      const d = +b.dataset.step; show(cur + d, d); Sound.select(cur);
       card.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }));
     show(cur);
@@ -929,6 +976,9 @@
         clearInterval(auto); if (seen && !reduce) auto = setInterval(turn, 7000);
       }, { threshold: .55 }).observe($("#voices"));
     }
+
+    // while the hole guide fills the screen, the dock steps aside so every line is visible
+    new IntersectionObserver(([e]) => document.body.classList.toggle("in-holes", e.isIntersecting), { rootMargin: "-50% 0px -50% 0px" }).observe($("#holes"));
 
     // keep the city clock showing the real time
     const clock = $(".live-time");
